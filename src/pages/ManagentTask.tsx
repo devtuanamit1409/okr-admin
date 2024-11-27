@@ -17,7 +17,6 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import api from "../services/api";
 import AppLayout from "../components/AppLayout";
 import { handleLogout } from "../helper/authHelpers";
-import { useFetchUser } from "../hooks/useFetchUser";
 
 dayjs.extend(customParseFormat);
 
