@@ -186,9 +186,9 @@ const Users: React.FC = () => {
     message.info(`Chỉnh sửa user: ${record.username}`);
   };
 
-  const handleManageTasks = (record: any) => {
-    message.info(`Quản lý task cho user: ${record.username}`);
-  };
+  // const handleManageTasks = (record: any) => {
+  //   message.info(`Quản lý task cho user: ${record.username}`);
+  // };
 
   const handleTableChange = (pagination: any) => {
     fetchUsers(pagination.current, pagination.pageSize);

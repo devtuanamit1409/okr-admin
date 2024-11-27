@@ -22,7 +22,6 @@ import { useFetchUser } from "../hooks/useFetchUser";
 dayjs.extend(customParseFormat);
 
 const ManagentTask: React.FC = () => {
-  const { user } = useFetchUser();
   const { id } = useParams<{ id: string }>(); // Lấy ID user từ URL param
   const [tasks, setTasks] = useState([]); // State lưu trữ danh sách task
   const [loading, setLoading] = useState(false); // Loading state

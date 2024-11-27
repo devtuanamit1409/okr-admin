@@ -10,7 +10,7 @@ interface HeaderProps {
   onLogout: () => void;
 }
 
-const HeaderBar: React.FC<HeaderProps> = ({ pageTitle, onLogout }) => {
+const HeaderBar: React.FC<HeaderProps> = ({ pageTitle }) => {
   const { user, loading } = useFetchUser(); // Gọi hook để lấy thông tin người dùng
 
   const handleLogout = () => {

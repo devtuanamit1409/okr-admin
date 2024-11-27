@@ -3,11 +3,9 @@ import { Layout, Menu } from "antd";
 import {
   ClusterOutlined,
   DashboardOutlined,
-  HomeOutlined,
   IdcardOutlined,
   ProfileOutlined,
   TeamOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom"; // Dùng React Router
 import { useFetchUser } from "../hooks/useFetchUser";

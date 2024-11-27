@@ -21,7 +21,7 @@ const Dashboard: React.FC = () => {
   const [positionData, setPositionData] = useState<PositionData[]>([]);
   const [taskStatusData, setTaskStatusData] = useState<TaskStatusData[]>([]);
   const [overdueTaskData, setOverdueTaskData] = useState<TaskStatusData[]>([]);
-  const [mainPosition, setMainPosition] = useState([]);
+  // const [mainPosition, setMainPosition] = useState([]);
 
   const fetchPositionMain = async () => {
     try {
@@ -34,7 +34,7 @@ const Dashboard: React.FC = () => {
         },
       });
       const positions = response.data.data || []; // Lấy danh sách position
-      setMainPosition(positions);
+      // setMainPosition(positions);
       return positions;
     } catch (error) {
       message.error("Không thể lấy danh sách vị trí. Vui lòng thử lại sau.");
