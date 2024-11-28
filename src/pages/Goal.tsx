@@ -10,6 +10,7 @@ import {
   Typography,
   Space,
   Card,
+  Progress,
 } from "antd";
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import AppLayout from "../components/AppLayout";
@@ -48,7 +49,7 @@ const Goal: React.FC = () => {
   const handleAddGoal = (values: any) => {
     const newGoal = {
       ...values,
-      progress: 0, // Mặc định progress là 0
+      progess: 0, // Mặc định tiến độ là 0
     };
     setGoals((prev) => ({
       ...prev,
@@ -61,7 +62,7 @@ const Goal: React.FC = () => {
   const handleEditGoal = (values: any) => {
     const updatedGoals = goals[activeTab].map((goal, index) =>
       index === editingGoal.index
-        ? { ...values, progress: goal.progress }
+        ? { ...values } // Cập nhật cả progess khi chỉnh sửa
         : goal
     );
     setGoals((prev) => ({
@@ -119,11 +120,25 @@ const Goal: React.FC = () => {
       title: "Số lượng",
       dataIndex: "quantity",
       key: "quantity",
+      render: (quantity: number) => {
+        // Định dạng số với dấu phân cách bằng `Intl.NumberFormat`
+        const formattedQuantity = new Intl.NumberFormat("en-US").format(
+          quantity
+        );
+        return <span>{formattedQuantity}</span>;
+      },
     },
     {
       title: "Tiến độ (%)",
-      dataIndex: "progress",
-      key: "progress",
+      dataIndex: "progess",
+      key: "progess",
+      render: (progess: number) => (
+        <Progress
+          percent={progess || 0}
+          size="small"
+          status={progess === 100 ? "success" : "active"}
+        />
+      ),
     },
     {
       title: "Kỳ hạn",
@@ -162,7 +177,7 @@ const Goal: React.FC = () => {
             setEditingGoal(null);
           }}
         >
-          {["goalWeek", "goalPrecious", "goalMonth", "goalYear"].map((key) => (
+          {["goalWeek", "goalMonth", "goalYear", "goalPrecious"].map((key) => (
             <Tabs.TabPane
               tab={
                 key === "goalWeek"
@@ -235,6 +250,15 @@ const Goal: React.FC = () => {
             >
               <Input />
             </Form.Item>
+            {editingGoal && (
+              <Form.Item
+                name="progess"
+                label="Tiến độ (%)"
+                rules={[{ required: true, message: "Vui lòng nhập tiến độ!" }]}
+              >
+                <Input type="number" min={0} max={100} />
+              </Form.Item>
+            )}
             <Form.Item>
               <Button type="primary" htmlType="submit" loading={loading}>
                 {editingGoal ? "Cập nhật" : "Thêm"}
@@ -242,6 +266,7 @@ const Goal: React.FC = () => {
             </Form.Item>
           </Form>
         </Modal>
+        ;
         <div style={{ textAlign: "center", marginTop: 20 }}>
           <Button type="primary" onClick={onFinish} loading={loading}>
             Lưu thay đổi

@@ -22,6 +22,8 @@ import EditOutlined from "@ant-design/icons/EditOutlined";
 import DeleteOutlined from "@ant-design/icons/DeleteOutlined";
 import "../styles/Loading.css";
 import { PlusOutlined } from "@ant-design/icons";
+import { Tooltip } from "antd";
+import { InfoCircleOutlined } from "@ant-design/icons";
 
 dayjs.extend(customParseFormat);
 
@@ -44,6 +46,7 @@ const Task: React.FC = () => {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isEditGoalModalVisible, setIsEditGoalModalVisible] = useState(false);
   const [goalForm] = Form.useForm();
+  const [filteredGoals, setFilteredGoals] = useState<any[]>(goalDaily);
 
   const handleAddGoal = async (values: any) => {
     try {
@@ -159,9 +162,24 @@ const Task: React.FC = () => {
     if (date) {
       const formattedDate = date.format("YYYY-MM-DD");
       setSelectedDate(date);
+
+      // Lọc goalDaily dựa trên ngày
+      const filtered = goalDaily.filter(
+        (goal) => dayjs(goal.createdAt).format("YYYY-MM-DD") === formattedDate
+      );
+      setFilteredGoals(filtered); // Cập nhật danh sách mục tiêu hiển thị
+
+      // Gọi fetchTasks để cập nhật danh sách nhiệm vụ
       fetchTasks(formattedDate);
+    } else {
+      // Nếu không chọn ngày, hiển thị tất cả mục tiêu
+      setFilteredGoals(goalDaily);
     }
   };
+
+  useEffect(() => {
+    setFilteredGoals(goalDaily);
+  }, [goalDaily]);
 
   // Hàm xử lý cập nhật tiến độ
   const handleUpdateProgress = async (values: any) => {
@@ -266,18 +284,45 @@ const Task: React.FC = () => {
 
   // Định nghĩa cột của bảng
   const columns = [
+    // {
+    //   title: (
+    //     <Tooltip title="Tiêu đề của nhiệm vụ">
+    //       <span>
+    //         Tiêu đề{" "}
+    //         <InfoCircleOutlined
+    //           style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+    //         />
+    //       </span>
+    //     </Tooltip>
+    //   ),
+    //   dataIndex: "title",
+    //   key: "title",
+    // },
     {
-      title: "Tiêu đề",
-      dataIndex: "title",
-      key: "title",
-    },
-    {
-      title: "Mô tả",
+      title: (
+        <Tooltip title="Mô tả ngắn gọn về nhiệm vụ">
+          <span>
+            Mô tả{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       dataIndex: "description",
       key: "description",
     },
     {
-      title: "Tiến độ",
+      title: (
+        <Tooltip title="Tiến độ hoàn thành của nhiệm vụ">
+          <span>
+            Tiến độ{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       dataIndex: "progess",
       key: "progess",
       render: (progress: number) => (
@@ -289,75 +334,153 @@ const Task: React.FC = () => {
       ),
     },
     {
-      title: "Trạng thái",
+      title: (
+        <Tooltip title="Trạng thái hiện tại của nhiệm vụ">
+          <span>
+            Trạng thái{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       dataIndex: "Tags",
       key: "Tags",
       render: (tag: string) => {
         let color;
+        let translatedTag; // Thêm biến để lưu trạng thái dịch sang tiếng Việt
         switch (tag) {
           case "Done":
             color = "green";
+            translatedTag = "Hoàn thành";
             break;
           case "None":
             color = "red";
+            translatedTag = "Chưa bắt đầu";
             break;
           case "In progress":
             color = "blue";
+            translatedTag = "Đang thực hiện";
             break;
           case "Pending":
             color = "orange";
+            translatedTag = "Đang chờ xử lý";
             break;
           default:
             color = "default";
+            translatedTag = "Không xác định";
         }
-        return <Tag color={color}>{tag || "N/A"}</Tag>;
+        return <Tag color={color}>{translatedTag}</Tag>;
       },
     },
     {
-      title: "Thời gian bắt đầu",
+      title: (
+        <Tooltip title="Thời gian bắt đầu nhiệm vụ">
+          <span>
+            Thời gian bắt đầu{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       dataIndex: "startAt",
       key: "startAt",
       render: (text: string) => dayjs(text).format("YYYY-MM-DD HH:mm"),
     },
     {
-      title: "Thời gian hoàn thành",
+      title: (
+        <Tooltip title="Thời gian hoàn thành nhiệm vụ">
+          <span>
+            Thời gian hoàn thành{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       dataIndex: "completion_time",
       key: "completion_time",
       render: (text: string) => dayjs(text).format("YYYY-MM-DD HH:mm"),
     },
     {
-      title: "Lặp lại mỗi ngày",
+      title: (
+        <Tooltip title="Nhiệm vụ có lặp lại mỗi ngày không">
+          <span>
+            Lặp lại mỗi ngày{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       dataIndex: "repeat",
       key: "repeat",
       render: (repeat: boolean) => (repeat ? "Có" : "Không"),
     },
     {
-      title: "Hạn chót",
+      title: (
+        <Tooltip title="Hạn chót hoàn thành nhiệm vụ">
+          <span>
+            Hạn chót{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       dataIndex: "deadline",
       key: "deadline",
       render: (deadline: string) => dayjs(deadline).format("YYYY-MM-DD HH:mm"),
     },
     {
-      title: "Giờ hoàn thành",
+      title: (
+        <Tooltip title="Tổng số giờ hoàn thành nhiệm vụ dự kiến">
+          <span>
+            Giờ dự kiến{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       dataIndex: "hours",
       key: "hours",
       render: (hours: number) => `${hours} giờ`,
     },
     {
-      title: "Thời gian thực",
+      title: (
+        <Tooltip title="Thời gian thực tế hoàn thành nhiệm vụ">
+          <span>
+            Giờ thực tế{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       dataIndex: "timeDone",
       key: "timeDone",
-      render: (timeDone: number) => `${timeDone} `,
+      render: (timeDone: number) => `${timeDone}`,
     },
     {
-      title: "Hành động",
+      title: (
+        <Tooltip title="Các hành động có thể thực hiện trên nhiệm vụ này">
+          <span>
+            Hành động{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       key: "actions",
       render: (_: any, record: any) => (
         <>
           <Button
             type="primary"
             danger
-            disabled={record.startAt} // Disable nếu task đã được bắt đầu
+            disabled={record.startAt}
             onClick={() => {
               handleStartTask(record.id);
             }}
@@ -370,7 +493,7 @@ const Task: React.FC = () => {
               setCurrentTask(record);
               editForm.setFieldsValue({
                 ...record,
-                deadline: record.deadline ? dayjs(record.deadline) : null, // Chuyển đổi deadline thành Dayjs object
+                deadline: record.deadline ? dayjs(record.deadline) : null,
               });
               setIsEditModalVisible(true);
             }}
@@ -379,7 +502,7 @@ const Task: React.FC = () => {
           </Button>
 
           <Button
-            disabled={record.progess === 100} // Disable nếu tiến độ đã đạt 100%
+            disabled={record.progess === 100}
             type="link"
             onClick={() => {
               setCurrentTask(record);
@@ -392,7 +515,7 @@ const Task: React.FC = () => {
           <Button
             type="link"
             danger
-            onClick={() => handleDeleteTask(record.id)} // Gọi hàm xóa với xác nhận
+            onClick={() => handleDeleteTask(record.id)}
           >
             Xóa
           </Button>
@@ -402,17 +525,64 @@ const Task: React.FC = () => {
   ];
   const goalDailyColumns = [
     {
-      title: "Tên mục tiêu",
+      title: (
+        <Tooltip title="Mô tả ngắn về mục tiêu này">
+          <span>
+            Mô tả{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
+      dataIndex: "description",
+      key: "description",
+    },
+    {
+      title: (
+        <Tooltip title="Tên của mục tiêu mà bạn muốn theo dõi">
+          <span>
+            Tên mục tiêu{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       dataIndex: "name",
       key: "name",
     },
     {
-      title: "Số lượng",
+      title: (
+        <Tooltip title="Số lượng cần đạt được cho mục tiêu này">
+          <span>
+            Mục tiêu{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       dataIndex: "quantity",
       key: "quantity",
+      render: (quantity: number) => {
+        const formattedQuantity = new Intl.NumberFormat("en-US").format(
+          quantity
+        );
+        return <span>{formattedQuantity}</span>;
+      },
     },
     {
-      title: "Tiến độ (%)",
+      title: (
+        <Tooltip title="Tiến độ hoàn thành mục tiêu (tính theo %)">
+          <span>
+            Đơn vị (%){" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       dataIndex: "progess",
       key: "progess",
       render: (progess: number) => (
@@ -424,13 +594,22 @@ const Task: React.FC = () => {
       ),
     },
     {
-      title: "Hành động",
+      title: (
+        <Tooltip title="Các hành động có thể thực hiện trên mục tiêu này">
+          <span>
+            Hành động{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
       key: "actions",
       render: (_: any, record: any) => (
         <Space>
           <Button
             icon={<EditOutlined />}
-            onClick={() => handleEditGoalClick(record)} // Gọi hàm mở modal sửa goalDaily
+            onClick={() => handleEditGoalClick(record)}
           >
             Sửa
           </Button>
@@ -554,6 +733,9 @@ const Task: React.FC = () => {
             >
               <Input type="number" min={1} />
             </Form.Item>
+            <Form.Item name="progess" label="Tiến độ">
+              <Input type="number" min={1} />
+            </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit" block>
                 Lưu thay đổi
@@ -564,7 +746,7 @@ const Task: React.FC = () => {
         <Table
           rowKey="id"
           columns={goalDailyColumns}
-          dataSource={goalDaily}
+          dataSource={filteredGoals} // Dùng danh sách đã được lọc
           loading={loading}
           pagination={false}
           bordered
