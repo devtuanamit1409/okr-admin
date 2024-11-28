@@ -17,6 +17,7 @@ import api from "../services/api";
 import AppLayout from "../components/AppLayout";
 import { handleLogout } from "../helper/authHelpers";
 import { useFetchUser } from "../hooks/useFetchUser";
+import "../styles/Loading.css";
 
 dayjs.extend(customParseFormat);
 
@@ -34,6 +35,18 @@ const Task: React.FC = () => {
   const [progressForm] = Form.useForm(); // Form quản lý cập nhật tiến độ
   const [isModalVisible, setIsModalVisible] = useState(false); // Hiển thị modal
   const [hoursWork, setHoursWork] = useState(0);
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
+
+  const LoadingOverlay = () => {
+    if (!loadingUpdate) return null;
+
+    return (
+      <div className="loading-overlay">
+        <div className="spinner"></div>
+      </div>
+    );
+  };
+
   // Hàm lấy danh sách task theo user và ngày
   const fetchTasks = async (date: string) => {
     setLoading(true);
@@ -96,6 +109,7 @@ const Task: React.FC = () => {
 
   // Hàm xử lý cập nhật tiến độ
   const handleUpdateProgress = async (values: any) => {
+    setLoadingUpdate(true);
     if (!currentTask) return;
     try {
       await api.put(`/tasks/${currentTask.id}`, {
@@ -106,8 +120,10 @@ const Task: React.FC = () => {
       message.success("Tiến độ đã được cập nhật.");
       setIsProgressModalVisible(false);
       fetchTasks(selectedDate.format("YYYY-MM-DD"));
+      setLoadingUpdate(false);
     } catch (error) {
       message.error("Không thể cập nhật tiến độ. Vui lòng thử lại sau.");
+      setLoadingUpdate(false);
     }
   };
 
@@ -164,6 +180,20 @@ const Task: React.FC = () => {
     }
   };
 
+  const handleStartTask = async (taskId: number) => {
+    try {
+      await api.put(`/tasks/${taskId}`, {
+        data: {
+          startAt: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+        },
+      });
+      message.success("Task đã được bắt đầu.");
+      fetchTasks(selectedDate.format("YYYY-MM-DD"));
+    } catch (error) {
+      message.error("Không thể bắt đầu task. Vui lòng thử lại sau.");
+    }
+  };
+
   // Định nghĩa cột của bảng
   const columns = [
     {
@@ -214,6 +244,12 @@ const Task: React.FC = () => {
       },
     },
     {
+      title: "Thời gian bắt đầu",
+      dataIndex: "startAt",
+      key: "startAt",
+      render: (text: string) => dayjs(text).format("YYYY-MM-DD HH:mm"),
+    },
+    {
       title: "Thời gian hoàn thành",
       dataIndex: "completion_time",
       key: "completion_time",
@@ -238,10 +274,26 @@ const Task: React.FC = () => {
       render: (hours: number) => `${hours} giờ`,
     },
     {
+      title: "Thời gian thực tế",
+      dataIndex: "timeDone",
+      key: "timeDone",
+      render: (timeDone: number) => `${timeDone} `,
+    },
+    {
       title: "Hành động",
       key: "actions",
       render: (_: any, record: any) => (
         <>
+          <Button
+            type="primary"
+            danger
+            disabled={record.startAt} // Disable nếu task đã được bắt đầu
+            onClick={() => {
+              handleStartTask(record.id);
+            }}
+          >
+            Thực hiện
+          </Button>
           <Button
             type="link"
             onClick={() => {
@@ -257,6 +309,7 @@ const Task: React.FC = () => {
           </Button>
 
           <Button
+            disabled={record.progess === 100} // Disable nếu tiến độ đã đạt 100%
             type="link"
             onClick={() => {
               setCurrentTask(record);
