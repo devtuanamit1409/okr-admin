@@ -26,14 +26,10 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H 89.117.36.180 >> ~/.ssh/known_hosts
 
-      # 4. Debug SSH để kiểm tra kết nối
-      - name: Debug SSH
-        run: ssh -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@89.117.36.180 "echo 'SSH connection successful'"
-
-      # 5. Deploy code lên server
+      # 4. Deploy code lên server
       - name: Deploy to Server
         run: |
-          ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@89.117.36.180 << 'EOF'
+          ssh -o StrictHostKeyChecking=no root@89.117.36.180 << 'EOF'
             cd /root/okr-admin
             git pull origin main
             npm install
