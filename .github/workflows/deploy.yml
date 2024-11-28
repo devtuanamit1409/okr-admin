@@ -30,9 +30,21 @@ jobs:
       - name: Deploy to Server
         run: |
           ssh -o StrictHostKeyChecking=no root@89.117.36.180 << 'EOF'
+            # Thêm đường dẫn chứa npm và pm2 vào PATH
+            export PATH=$PATH:/usr/local/bin:/usr/bin
+
+            # Di chuyển đến thư mục dự án
             cd /root/okr-admin
+
+            # Pull code mới nhất từ GitHub
             git pull origin main
+
+            # Cài đặt các dependencies
             npm install
+
+            # Build lại ứng dụng
             npm run build
+
+            # Khởi động lại ứng dụng bằng pm2
             pm2 restart 4
           EOF
