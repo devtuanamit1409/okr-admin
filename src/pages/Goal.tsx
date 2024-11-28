@@ -32,7 +32,7 @@ const Goal: React.FC = () => {
   });
 
   const [isModalVisible, setIsModalVisible] = useState(false); // Trạng thái hiển thị Modal
-  const [editingGoal, setEditingGoal] = useState<any | null>(null); // Lưu trữ mục tiêu đang được chỉnh sửa
+  const [editingGoal, setEditingGoal] = useState<any | null>(null);
 
   useEffect(() => {
     if (user) {
