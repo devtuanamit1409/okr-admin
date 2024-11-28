@@ -25,6 +25,7 @@ const Sidebar: React.FC = () => {
     if (currentPath.startsWith("/dashboard")) return "/dashboard"; // Tiền tố "/dashboard"
     if (currentPath.startsWith("/position")) return "/position";
     if (currentPath.startsWith("/profile")) return "/profile";
+    if (currentPath.startsWith("/goal")) return "/goal";
 
     return ""; // Trường hợp không khớp
   };
@@ -60,6 +61,9 @@ const Sidebar: React.FC = () => {
         </Menu.Item>
         <Menu.Item key="/profile" icon={<IdcardOutlined />}>
           <Link to="/profile">Hồ sơ</Link>
+        </Menu.Item>
+        <Menu.Item key="/goal" icon={<IdcardOutlined />}>
+          <Link to="/goal">Mục tiêu</Link>
         </Menu.Item>
 
         {/* Tab chỉ dành cho admin */}

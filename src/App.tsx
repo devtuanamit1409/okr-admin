@@ -8,6 +8,7 @@ import ManagentTask from "./pages/ManagentTask";
 import Task from "./pages/Task";
 import Position from "./pages/Position";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Goal from "./pages/Goal";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route element={<Login />} path="/" />
         <Route element={<Task />} path="/task" />
         <Route element={<Profile />} path="/profile" />
+        <Route element={<Goal />} path="/goal" />
 
         {/* Route dành riêng cho admin */}
         <Route

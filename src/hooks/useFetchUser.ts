@@ -19,6 +19,11 @@ interface User {
     name: string;
     isAdmin: string;
   };
+  goalPrecious?: any;
+  goalYear?: any;
+  goalWeek?: any;
+  goalMonth?: any;
+  goalDaily?: any;
 }
 export const useFetchUser = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -34,7 +39,9 @@ export const useFetchUser = () => {
 
         // Gán token vào header Authorization
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        const response = await api.get("/users/me?populate=role,postion");
+        const response = await api.get(
+          "/users/me?populate=role,postion,goalWeek,goalMonth,goalPrecious,goalYear,goalDaily"
+        );
         setUser(response.data); // Lưu thông tin người dùng
       } catch (error) {
         console.error("Error fetching user:", error);

@@ -10,6 +10,7 @@ import {
   Input,
   Button,
   Checkbox,
+  Space,
 } from "antd";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -17,7 +18,10 @@ import api from "../services/api";
 import AppLayout from "../components/AppLayout";
 import { handleLogout } from "../helper/authHelpers";
 import { useFetchUser } from "../hooks/useFetchUser";
+import EditOutlined from "@ant-design/icons/EditOutlined";
+import DeleteOutlined from "@ant-design/icons/DeleteOutlined";
 import "../styles/Loading.css";
+import { PlusOutlined } from "@ant-design/icons";
 
 dayjs.extend(customParseFormat);
 
@@ -35,6 +39,43 @@ const Task: React.FC = () => {
   const [progressForm] = Form.useForm(); // Form quản lý cập nhật tiến độ
   const [isModalVisible, setIsModalVisible] = useState(false); // Hiển thị modal
   const [hoursWork, setHoursWork] = useState(0);
+  const [goalDaily, setGoalDaily] = useState<any[]>([]);
+  const [currentGoal, setCurrentGoal] = useState<any>(null);
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [isEditGoalModalVisible, setIsEditGoalModalVisible] = useState(false);
+  const [goalForm] = Form.useForm();
+
+  const handleAddGoal = async (values: any) => {
+    try {
+      const newGoal = {
+        ...values,
+        progess: 0, // Mặc định tiến độ = 0
+      };
+
+      // Thêm mục tiêu mới vào danh sách hiện tại
+      const updatedGoals = [...goalDaily, newGoal];
+
+      // Gửi danh sách cập nhật lên API
+      await api.put(`/users/${user?.id}`, {
+        goalDaily: updatedGoals,
+      });
+
+      // Cập nhật trực tiếp state `goalDaily`
+      window.location.reload();
+      message.success("Thêm mục tiêu thành công!");
+      setIsAddModalVisible(false);
+      form.resetFields();
+    } catch (error) {
+      console.error("Lỗi khi thêm mục tiêu:", error);
+      message.error("Không thể thêm mục tiêu. Vui lòng thử lại sau.");
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      setGoalDaily(user.goalDaily || []); // Cập nhật goalDaily từ user
+    }
+  }, [user, handleAddGoal]);
 
   // Hàm lấy danh sách task theo user và ngày
   const fetchTasks = async (date: string) => {
@@ -80,6 +121,32 @@ const Task: React.FC = () => {
     }
   };
 
+  const handleEditGoalClick = (goal: any) => {
+    setCurrentGoal(goal);
+    goalForm.setFieldsValue(goal); // Sử dụng form riêng cho goalDaily
+    setIsEditGoalModalVisible(true); // Mở modal sửa mục tiêu
+  };
+
+  const handleDeleteGoal = async (goalId: string) => {
+    Modal.confirm({
+      title: "Bạn có chắc chắn muốn xóa mục tiêu này không?",
+      content: "Thao tác này không thể hoàn tác.",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          const updatedGoals = goalDaily.filter((goal) => goal.id !== goalId);
+          await api.put(`/users/${user?.id}`, { goalDaily: updatedGoals });
+          setGoalDaily(updatedGoals);
+          message.success("Xóa mục tiêu thành công!");
+          window.location.reload();
+        } catch (error) {
+          message.error("Không thể xóa mục tiêu. Vui lòng thử lại sau.");
+        }
+      },
+    });
+  };
   // Gọi API lần đầu khi component được mount
   useEffect(() => {
     if (id) {
@@ -177,6 +244,23 @@ const Task: React.FC = () => {
       fetchTasks(selectedDate.format("YYYY-MM-DD"));
     } catch (error) {
       message.error("Không thể bắt đầu task. Vui lòng thử lại sau.");
+    }
+  };
+
+  const handleEditGoal = async (values: any) => {
+    if (!currentGoal) return;
+    try {
+      const updatedGoals = goalDaily.map((goal) =>
+        goal.id === currentGoal.id ? { ...goal, ...values } : goal
+      );
+      await api.put(`/users/${user?.id}`, { goalDaily: updatedGoals });
+      setGoalDaily(updatedGoals);
+      window.location.reload();
+      message.success("Cập nhật mục tiêu thành công!");
+      setIsEditGoalModalVisible(false); // Đóng modal sửa goalDaily
+      goalForm.resetFields(); // Reset form goalDaily
+    } catch (error) {
+      message.error("Không thể cập nhật mục tiêu. Vui lòng thử lại sau.");
     }
   };
 
@@ -316,14 +400,183 @@ const Task: React.FC = () => {
       ),
     },
   ];
+  const goalDailyColumns = [
+    {
+      title: "Tên mục tiêu",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Số lượng",
+      dataIndex: "quantity",
+      key: "quantity",
+    },
+    {
+      title: "Tiến độ (%)",
+      dataIndex: "progess",
+      key: "progess",
+      render: (progess: number) => (
+        <Progress
+          percent={progess || 0}
+          size="small"
+          status={progess === 100 ? "success" : "active"}
+        />
+      ),
+    },
+    {
+      title: "Hành động",
+      key: "actions",
+      render: (_: any, record: any) => (
+        <Space>
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => handleEditGoalClick(record)} // Gọi hàm mở modal sửa goalDaily
+          >
+            Sửa
+          </Button>
+          <Button
+            icon={<DeleteOutlined />}
+            danger
+            onClick={() => handleDeleteGoal(record.id)}
+          >
+            Xóa
+          </Button>
+        </Space>
+      ),
+    },
+  ];
 
   return (
     <AppLayout
       pageTitle={`Task của tôi - ${user?.name}`}
       onLogout={handleLogout}
     >
+      <DatePicker
+        value={selectedDate}
+        onChange={handleDateChange}
+        format="YYYY-MM-DD"
+        style={{ marginBottom: 16 }}
+      />
+      <div
+        className="py-4"
+        style={{
+          marginTop: 16,
+          padding: "20px",
+          backgroundColor: "#f6f8fa",
+          borderRadius: "8px",
+          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+          border: "3px solid #ff0000",
+        }}
+      >
+        <h3
+          style={{
+            marginBottom: 16,
+            fontSize: "20px",
+            fontWeight: "bold",
+            color: "#1890ff",
+            textAlign: "center",
+          }}
+        >
+          🌟 Danh sách Mục Tiêu Ngày
+        </h3>{" "}
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          style={{ marginBottom: 16 }}
+          onClick={() => setIsAddModalVisible(true)}
+        >
+          Thêm Mục Tiêu
+        </Button>
+        <Modal
+          title="Thêm Mục Tiêu Ngày"
+          visible={isAddModalVisible}
+          onCancel={() => setIsAddModalVisible(false)}
+          footer={null}
+        >
+          <Form form={form} layout="vertical" onFinish={handleAddGoal}>
+            <Form.Item
+              name="name"
+              label="Tên mục tiêu"
+              rules={[
+                { required: true, message: "Vui lòng nhập tên mục tiêu" },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="description"
+              label="Mô tả"
+              rules={[{ required: true, message: "Vui lòng nhập mô tả" }]}
+            >
+              <Input.TextArea />
+            </Form.Item>
+            <Form.Item
+              name="quantity"
+              label="Số lượng"
+              rules={[{ required: true, message: "Vui lòng nhập số lượng" }]}
+            >
+              <Input type="number" min={1} />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit" block>
+                Thêm
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
+        <Modal
+          title="Chỉnh sửa Mục Tiêu Ngày"
+          visible={isEditGoalModalVisible}
+          onCancel={() => setIsEditGoalModalVisible(false)}
+          footer={null}
+        >
+          <Form form={goalForm} layout="vertical" onFinish={handleEditGoal}>
+            <Form.Item
+              name="name"
+              label="Tên mục tiêu"
+              rules={[
+                { required: true, message: "Vui lòng nhập tên mục tiêu" },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="description"
+              label="Mô tả"
+              rules={[{ required: true, message: "Vui lòng nhập mô tả" }]}
+            >
+              <Input.TextArea />
+            </Form.Item>
+            <Form.Item
+              name="quantity"
+              label="Số lượng"
+              rules={[{ required: true, message: "Vui lòng nhập số lượng" }]}
+            >
+              <Input type="number" min={1} />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit" block>
+                Lưu thay đổi
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
+        <Table
+          rowKey="id"
+          columns={goalDailyColumns}
+          dataSource={goalDaily}
+          loading={loading}
+          pagination={false}
+          bordered
+          style={{
+            backgroundColor: "white",
+          }}
+        />
+      </div>
+
       <Button
         type="primary"
+        className="mt-4"
         style={{ marginBottom: 16 }}
         onClick={() => setIsModalVisible(true)}
       >
@@ -332,13 +585,8 @@ const Task: React.FC = () => {
       <div style={{ marginBottom: 16 }}>
         <strong>Tổng thời gian làm việc: {hoursWork} giờ</strong>
       </div>
+
       <div>
-        <DatePicker
-          value={selectedDate}
-          onChange={handleDateChange}
-          format="YYYY-MM-DD"
-          style={{ marginBottom: 16 }}
-        />
         <Table
           rowKey="id"
           columns={columns}
