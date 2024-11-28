@@ -22,12 +22,14 @@ jobs:
 
       # 3. Thêm server vào known_hosts
       - name: Add server to known_hosts
-        run: ssh-keyscan -H 89.117.36.180 >> ~/.ssh/known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 89.117.36.180 >> ~/.ssh/known_hosts
 
       # 4. Deploy code lên server
       - name: Deploy to Server
         run: |
-          ssh root@89.117.36.180 << 'EOF'
+          ssh -o StrictHostKeyChecking=no root@89.117.36.180 << 'EOF'
             cd /root/okr-admin
             git pull origin main
             npm install
