@@ -35,17 +35,6 @@ const Task: React.FC = () => {
   const [progressForm] = Form.useForm(); // Form quản lý cập nhật tiến độ
   const [isModalVisible, setIsModalVisible] = useState(false); // Hiển thị modal
   const [hoursWork, setHoursWork] = useState(0);
-  const [loadingUpdate, setLoadingUpdate] = useState(false);
-
-  const LoadingOverlay = () => {
-    if (!loadingUpdate) return null;
-
-    return (
-      <div className="loading-overlay">
-        <div className="spinner"></div>
-      </div>
-    );
-  };
 
   // Hàm lấy danh sách task theo user và ngày
   const fetchTasks = async (date: string) => {
@@ -109,7 +98,6 @@ const Task: React.FC = () => {
 
   // Hàm xử lý cập nhật tiến độ
   const handleUpdateProgress = async (values: any) => {
-    setLoadingUpdate(true);
     if (!currentTask) return;
     try {
       await api.put(`/tasks/${currentTask.id}`, {
@@ -120,10 +108,8 @@ const Task: React.FC = () => {
       message.success("Tiến độ đã được cập nhật.");
       setIsProgressModalVisible(false);
       fetchTasks(selectedDate.format("YYYY-MM-DD"));
-      setLoadingUpdate(false);
     } catch (error) {
       message.error("Không thể cập nhật tiến độ. Vui lòng thử lại sau.");
-      setLoadingUpdate(false);
     }
   };
 
