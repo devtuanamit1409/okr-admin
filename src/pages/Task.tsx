@@ -274,7 +274,7 @@ const Task: React.FC = () => {
       render: (hours: number) => `${hours} giờ`,
     },
     {
-      title: "Thời gian thực tế",
+      title: "Thời gian thực",
       dataIndex: "timeDone",
       key: "timeDone",
       render: (timeDone: number) => `${timeDone} `,
