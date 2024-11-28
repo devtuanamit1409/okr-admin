@@ -1,0 +1,32 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main # Chạy pipeline khi có code push lên nhánh main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout mã nguồn
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Thiết lập SSH để kết nối tới server
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # 3. Deploy code lên server
+      - name: Deploy to Server
+        run: |
+          ssh root@89.117.36.180 << 'EOF'
+            cd /root/okr-admin
+            git pull origin main
+            npm install
+            npm run build
+            pm2 restart 4 # Hoặc pm2 restart <tên tiến trình>
+          EOF
