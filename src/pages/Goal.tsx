@@ -6,7 +6,6 @@ import {
   Modal,
   Form,
   Input,
-  Select,
   message,
   Typography,
   Space,
@@ -19,7 +18,6 @@ import { useFetchUser } from "../hooks/useFetchUser";
 import api from "../services/api";
 
 const { Title } = Typography;
-const { Option } = Select;
 
 const Goal: React.FC = () => {
   const { user } = useFetchUser(); // Lấy thông tin user từ hook
