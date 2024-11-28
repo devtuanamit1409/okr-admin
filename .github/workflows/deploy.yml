@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main # Chạy pipeline khi có code push lên nhánh main
+      - main
 
 jobs:
   deploy:
@@ -20,7 +20,11 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      # 3. Deploy code lên server
+      # 3. Thêm server vào known_hosts
+      - name: Add server to known_hosts
+        run: ssh-keyscan -H 89.117.36.180 >> ~/.ssh/known_hosts
+
+      # 4. Deploy code lên server
       - name: Deploy to Server
         run: |
           ssh root@89.117.36.180 << 'EOF'
@@ -28,5 +32,5 @@ jobs:
             git pull origin main
             npm install
             npm run build
-            pm2 restart 4 # Hoặc pm2 restart <tên tiến trình>
+            pm2 restart 4
           EOF
