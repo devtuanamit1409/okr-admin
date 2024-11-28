@@ -19,10 +19,17 @@ import AppLayout from "../components/AppLayout";
 import { handleLogout } from "../helper/authHelpers";
 
 dayjs.extend(customParseFormat);
+interface TaskRecord {
+  id: string;
+  title: string;
+  description: string;
+  isImportant?: boolean; // Đảm bảo thêm isImportant vào kiểu dữ liệu
+  [key: string]: any; // Nếu có thêm thuộc tính khác
+}
 
 const ManagentTask: React.FC = () => {
   const { id } = useParams<{ id: string }>(); // Lấy ID user từ URL param
-  const [tasks, setTasks] = useState([]); // State lưu trữ danh sách task
+  const [tasks, setTasks] = useState<TaskRecord[]>([]);
   const [loading, setLoading] = useState(false); // Loading state
   const [selectedDate, setSelectedDate] = useState(dayjs()); // Ngày được chọn, mặc định là ngày hiện tại
   const [isModalVisible, setIsModalVisible] = useState(false); // Hiển thị modal
@@ -177,9 +184,9 @@ const ManagentTask: React.FC = () => {
           dataSource={tasks}
           loading={loading}
           pagination={false} // Tắt phân trang vì task đã lọc theo ngày
-          // rowClassName={(record) =>
-          //   record.isImportant ? "important-task" : ""
-          // }
+          rowClassName={(record) =>
+            (record.isImportant ? "important-task" : "") || ""
+          }
         />
         <Modal
           title="Thêm Task"
