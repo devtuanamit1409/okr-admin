@@ -12,6 +12,8 @@ import {
   Checkbox,
   Space,
 } from "antd";
+import utc from "dayjs/plugin/utc"; // Import plugin utc
+
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import api from "../services/api";
@@ -26,6 +28,8 @@ import { Tooltip } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
 
 dayjs.extend(customParseFormat);
+
+dayjs.extend(utc); // Kích hoạt plugin utc
 
 const Task: React.FC = () => {
   const { user } = useFetchUser(); // Lấy thông tin người dùng hiện tại
@@ -271,11 +275,15 @@ const Task: React.FC = () => {
 
   const handleStartTask = async (taskId: number) => {
     try {
+      // Lưu thời gian hiện tại dưới dạng UTC
+      const utcTime = dayjs().utc().format("YYYY-MM-DD HH:mm:ss");
+
       await api.put(`/tasks/${taskId}`, {
         data: {
-          startAt: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+          startAt: utcTime,
         },
       });
+
       message.success("Task đã được bắt đầu.");
       fetchTasks(selectedDate.format("YYYY-MM-DD"));
     } catch (error) {
