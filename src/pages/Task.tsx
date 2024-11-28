@@ -45,18 +45,31 @@ const Task: React.FC = () => {
       });
 
       const userTasks = response.data.data?.tasks || [];
+
       // Lọc task theo ngày
       const filteredTasks = userTasks.filter((task: any) => {
         const taskDate = dayjs(task.createdAt).format("YYYY-MM-DD");
         return taskDate === date;
       });
 
+      // Sắp xếp theo thứ tự:
+      // 1. Task có `isImportant` lên đầu
+      // 2. Task có `Tags` = "Done" tiếp theo
+      // 3. Các task còn lại
+      const sortedTasks = filteredTasks.sort((a: any, b: any) => {
+        if (a.isImportant && !b.isImportant) return -1; // isImportant lên đầu
+        if (!a.isImportant && b.isImportant) return 1;
+        if (a.Tags === "Done" && b.Tags !== "Done") return -1; // Tags = "Done" tiếp theo
+        if (a.Tags !== "Done" && b.Tags === "Done") return 1;
+        return 0; // Giữ nguyên thứ tự nếu không thuộc các điều kiện trên
+      });
+
       // Cộng dồn trường hours
-      const totalHours = filteredTasks.reduce((sum: number, task: any) => {
+      const totalHours = sortedTasks.reduce((sum: number, task: any) => {
         return sum + (task.hours || 0); // Nếu task không có hours, mặc định là 0
       }, 0);
 
-      setTasks(filteredTasks); // Cập nhật danh sách task
+      setTasks(sortedTasks); // Cập nhật danh sách task
       setHoursWork(totalHours); // Cập nhật tổng thời gian làm việc
     } catch (error) {
       message.error("Không thể tải danh sách công việc. Vui lòng thử lại sau.");
@@ -335,7 +348,7 @@ const Task: React.FC = () => {
             <Form.Item
               name="deadline"
               label="Hạn chót"
-              rules={[{ required: true, message: "Vui lòng chọn thời hạn" }]}
+              rules={[{ message: "Vui lòng chọn thời hạn" }]}
             >
               <DatePicker
                 showTime
@@ -347,9 +360,7 @@ const Task: React.FC = () => {
             <Form.Item
               name="hours"
               label="Giờ hoàn thành"
-              rules={[
-                { required: true, message: "Vui lòng nhập giờ hoàn thành" },
-              ]}
+              rules={[{ message: "Vui lòng nhập giờ hoàn thành" }]}
             >
               <Input type="number" min={0} />
             </Form.Item>
@@ -439,9 +450,7 @@ const Task: React.FC = () => {
             <Form.Item
               name="hours"
               label="Giờ hoàn thành"
-              rules={[
-                { required: true, message: "Vui lòng nhập giờ hoàn thành" },
-              ]}
+              rules={[{ message: "Vui lòng nhập giờ hoàn thành" }]}
             >
               <Input type="number" min={0} />
             </Form.Item>

@@ -45,14 +45,27 @@ const ManagentTask: React.FC = () => {
         },
       });
 
-      const userTasks = response.data.data.tasks || [];
+      const userTasks = response.data.data?.tasks || [];
+
       // Lọc task theo ngày
       const filteredTasks = userTasks.filter((task: any) => {
         const taskDate = dayjs(task.createdAt).format("YYYY-MM-DD");
-        return taskDate === date; // Chỉ lấy task có ngày khớp với ngày được chọn
+        return taskDate === date;
       });
 
-      setTasks(filteredTasks);
+      // Sắp xếp theo thứ tự:
+      // 1. Task có `isImportant` lên đầu
+      // 2. Task có `Tags` = "Done" tiếp theo
+      // 3. Các task còn lại
+      const sortedTasks = filteredTasks.sort((a: any, b: any) => {
+        if (a.isImportant && !b.isImportant) return -1; // isImportant lên đầu
+        if (!a.isImportant && b.isImportant) return 1;
+        if (a.Tags === "Done" && b.Tags !== "Done") return -1; // Tags = "Done" tiếp theo
+        if (a.Tags !== "Done" && b.Tags === "Done") return 1;
+        return 0; // Giữ nguyên thứ tự nếu không thuộc các điều kiện trên
+      });
+
+      setTasks(sortedTasks); // Cập nhật danh sách task
     } catch (error) {
       message.error("Không thể tải danh sách công việc. Vui lòng thử lại sau.");
     } finally {
@@ -142,12 +155,6 @@ const ManagentTask: React.FC = () => {
       },
     },
     {
-      title: "Ngày tạo",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (text: string) => dayjs(text).format("YYYY-MM-DD HH:mm"),
-    },
-    {
       title: "Thời gian hoàn thành",
       dataIndex: "completion_time",
       key: "completion_time",
@@ -158,6 +165,18 @@ const ManagentTask: React.FC = () => {
       dataIndex: "repeat",
       key: "repeat",
       render: (repeat: boolean) => (repeat ? "Có" : "Không"),
+    },
+    {
+      title: "Hạn chót",
+      dataIndex: "deadline",
+      key: "deadline",
+      render: (deadline: string) => dayjs(deadline).format("YYYY-MM-DD HH:mm"),
+    },
+    {
+      title: "Giờ hoàn thành",
+      dataIndex: "hours",
+      key: "hours",
+      render: (hours: number) => `${hours} giờ`,
     },
   ];
 
@@ -224,6 +243,25 @@ const ManagentTask: React.FC = () => {
               label="Quan trọng"
             >
               <Checkbox />
+            </Form.Item>
+            <Form.Item
+              name="deadline"
+              label="Hạn chót"
+              rules={[{ message: "Vui lòng chọn thời hạn" }]}
+            >
+              <DatePicker
+                showTime
+                format="YYYY-MM-DD HH:mm"
+                style={{ width: "100%" }}
+              />
+            </Form.Item>
+            {/* Trường giờ hoàn thành */}
+            <Form.Item
+              name="hours"
+              label="Giờ hoàn thành"
+              rules={[{ message: "Vui lòng nhập giờ hoàn thành" }]}
+            >
+              <Input type="number" min={0} />
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit" block>
