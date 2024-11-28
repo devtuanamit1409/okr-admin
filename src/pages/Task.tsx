@@ -202,13 +202,31 @@ const Task: React.FC = () => {
   const handleEditTask = async (values: any) => {
     if (!currentTask) return;
     try {
+      const updatedValues = { ...values };
+
+      // Định dạng lại trường deadline
+      if (updatedValues.deadline) {
+        updatedValues.deadline = updatedValues.deadline.format(
+          "YYYY-MM-DD HH:mm:ss"
+        );
+      }
+
+      // Đảm bảo trường hours là số
+      if (updatedValues.hours) {
+        updatedValues.hours = Number(updatedValues.hours);
+      }
+
+      // Định dạng lại các trường ngày giờ khác nếu cần
+      // ...
+
       await api.put(`/tasks/${currentTask.id}`, {
-        data: values,
+        data: updatedValues,
       });
       message.success("Task đã được cập nhật.");
       setIsEditModalVisible(false);
       fetchTasks(selectedDate.format("YYYY-MM-DD"));
     } catch (error) {
+      console.error("Lỗi khi cập nhật task:", error);
       message.error("Không thể cập nhật task. Vui lòng thử lại sau.");
     }
   };
@@ -814,11 +832,7 @@ const Task: React.FC = () => {
             >
               <Checkbox />
             </Form.Item>
-            <Form.Item
-              name="deadline"
-              label="Hạn chót"
-              rules={[{ message: "Vui lòng chọn thời hạn" }]}
-            >
+            <Form.Item name="deadline" label="Hạn chót">
               <DatePicker
                 showTime
                 format="YYYY-MM-DD HH:mm"
@@ -826,11 +840,7 @@ const Task: React.FC = () => {
               />
             </Form.Item>
             {/* Trường giờ hoàn thành */}
-            <Form.Item
-              name="hours"
-              label="Giờ hoàn thành"
-              rules={[{ message: "Vui lòng nhập giờ hoàn thành" }]}
-            >
+            <Form.Item name="hours" label="Giờ hoàn thành">
               <Input type="number" min={0} />
             </Form.Item>
             <Form.Item>
