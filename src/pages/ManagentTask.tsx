@@ -177,6 +177,9 @@ const ManagentTask: React.FC = () => {
           dataSource={tasks}
           loading={loading}
           pagination={false} // Tắt phân trang vì task đã lọc theo ngày
+          rowClassName={(record) =>
+            record.isImportant ? "important-task" : ""
+          }
         />
         <Modal
           title="Thêm Task"
@@ -205,6 +208,13 @@ const ManagentTask: React.FC = () => {
               name="repeat"
               valuePropName="checked"
               label="Lặp lại mỗi ngày"
+            >
+              <Checkbox />
+            </Form.Item>
+            <Form.Item
+              name="isImportant"
+              valuePropName="checked"
+              label="Quan trọng"
             >
               <Checkbox />
             </Form.Item>

@@ -33,6 +33,7 @@ const Task: React.FC = () => {
   const [editForm] = Form.useForm(); // Form quản lý chỉnh sửa task
   const [progressForm] = Form.useForm(); // Form quản lý cập nhật tiến độ
   const [isModalVisible, setIsModalVisible] = useState(false); // Hiển thị modal
+  const [hoursWork, setHoursWork] = useState(0);
   // Hàm lấy danh sách task theo user và ngày
   const fetchTasks = async (date: string) => {
     setLoading(true);
@@ -44,12 +45,19 @@ const Task: React.FC = () => {
       });
 
       const userTasks = response.data.data?.tasks || [];
+      // Lọc task theo ngày
       const filteredTasks = userTasks.filter((task: any) => {
         const taskDate = dayjs(task.createdAt).format("YYYY-MM-DD");
         return taskDate === date;
       });
 
-      setTasks(filteredTasks);
+      // Cộng dồn trường hours
+      const totalHours = filteredTasks.reduce((sum: number, task: any) => {
+        return sum + (task.hours || 0); // Nếu task không có hours, mặc định là 0
+      }, 0);
+
+      setTasks(filteredTasks); // Cập nhật danh sách task
+      setHoursWork(totalHours); // Cập nhật tổng thời gian làm việc
     } catch (error) {
       message.error("Không thể tải danh sách công việc. Vui lòng thử lại sau.");
     } finally {
@@ -205,6 +213,18 @@ const Task: React.FC = () => {
       render: (repeat: boolean) => (repeat ? "Có" : "Không"),
     },
     {
+      title: "Hạn chót",
+      dataIndex: "deadline",
+      key: "deadline",
+      render: (deadline: string) => dayjs(deadline).format("YYYY-MM-DD HH:mm"),
+    },
+    {
+      title: "Giờ hoàn thành",
+      dataIndex: "hours",
+      key: "hours",
+      render: (hours: number) => `${hours} giờ`,
+    },
+    {
       title: "Hành động",
       key: "actions",
       render: (_: any, record: any) => (
@@ -213,12 +233,16 @@ const Task: React.FC = () => {
             type="link"
             onClick={() => {
               setCurrentTask(record);
-              editForm.setFieldsValue(record);
+              editForm.setFieldsValue({
+                ...record,
+                deadline: record.deadline ? dayjs(record.deadline) : null, // Chuyển đổi deadline thành Dayjs object
+              });
               setIsEditModalVisible(true);
             }}
           >
             Chỉnh sửa
           </Button>
+
           <Button
             type="link"
             onClick={() => {
@@ -253,6 +277,9 @@ const Task: React.FC = () => {
       >
         Thêm Task
       </Button>
+      <div style={{ marginBottom: 16 }}>
+        <strong>Tổng thời gian làm việc: {hoursWork} giờ</strong>
+      </div>
       <div>
         <DatePicker
           value={selectedDate}
@@ -266,7 +293,11 @@ const Task: React.FC = () => {
           dataSource={tasks}
           loading={loading}
           pagination={false}
+          rowClassName={(record) =>
+            record.isImportant ? "important-task" : ""
+          }
         />
+
         {/* Modal chỉnh sửa */}
         <Modal
           title="Chỉnh sửa Task"
@@ -293,6 +324,34 @@ const Task: React.FC = () => {
             </Form.Item>
             <Form.Item name="repeat" valuePropName="checked" label="Lặp lại">
               <Checkbox />
+            </Form.Item>
+            <Form.Item
+              name="isImportant"
+              valuePropName="checked"
+              label="Quan trọng"
+            >
+              <Checkbox />
+            </Form.Item>
+            <Form.Item
+              name="deadline"
+              label="Hạn chót"
+              rules={[{ required: true, message: "Vui lòng chọn thời hạn" }]}
+            >
+              <DatePicker
+                showTime
+                format="YYYY-MM-DD HH:mm"
+                style={{ width: "100%" }}
+              />
+            </Form.Item>
+            {/* Trường giờ hoàn thành */}
+            <Form.Item
+              name="hours"
+              label="Giờ hoàn thành"
+              rules={[
+                { required: true, message: "Vui lòng nhập giờ hoàn thành" },
+              ]}
+            >
+              <Input type="number" min={0} />
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit" block>
@@ -357,6 +416,34 @@ const Task: React.FC = () => {
               label="Lặp lại mỗi ngày"
             >
               <Checkbox />
+            </Form.Item>
+            <Form.Item
+              name="isImportant"
+              valuePropName="checked"
+              label="Quan trọng"
+            >
+              <Checkbox />
+            </Form.Item>
+            <Form.Item
+              name="deadline"
+              label="Hạn chót"
+              rules={[{ required: true, message: "Vui lòng chọn thời hạn" }]}
+            >
+              <DatePicker
+                showTime
+                format="YYYY-MM-DD HH:mm"
+                style={{ width: "100%" }}
+              />
+            </Form.Item>
+            {/* Trường giờ hoàn thành */}
+            <Form.Item
+              name="hours"
+              label="Giờ hoàn thành"
+              rules={[
+                { required: true, message: "Vui lòng nhập giờ hoàn thành" },
+              ]}
+            >
+              <Input type="number" min={0} />
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit" block>

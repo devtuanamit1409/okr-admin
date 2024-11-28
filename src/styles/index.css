@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.important-task {
+  background-color: #fff7e6; /* Màu nền vàng nhạt */
+  font-weight: bold; /* Chữ đậm */
+}
+.important-task:hover {
+  background-color: #fff7e6 !important; /* Màu nền vàng nhạt */
+  font-weight: bold !important; /* Chữ đậm */
+}
