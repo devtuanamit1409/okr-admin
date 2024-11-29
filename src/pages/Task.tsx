@@ -29,6 +29,7 @@ import {
   PlusOutlined,
   CaretDownOutlined,
   CaretUpOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
@@ -45,6 +46,7 @@ interface Task {
   title: string;
   progess: number;
   Tags: string;
+  priorityLevel: string;
   deadline: string;
   description: string; // Thuộc tính cần thiết
   [key: string]: any; // Các thuộc tính bổ sung
@@ -90,6 +92,81 @@ const Task: React.FC = () => {
   }, [user?.isInstruct]);
 
   const generateColumns = (showTooltips: boolean): Column[] => [
+    {
+      title: showTooltips ? (
+        <Tooltip title="Mức độ ưu tiên của task">
+          <span>
+            Mức độ ưu tiên
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ) : (
+        <span>Mức độ ưu tiên</span>
+      ),
+      dataIndex: "priorityLevel",
+      key: "priorityLevel",
+      render: (priorityLevel: string) => {
+        let color;
+        let tooltipText;
+
+        switch (priorityLevel) {
+          case "P0":
+            color = "#ff4d4f"; // Đỏ
+            tooltipText = "Mức độ ưu tiên cao nhất (khẩn cấp - nguy hiểm)";
+            break;
+          case "P1":
+            color = "#faad14"; // Cam
+            tooltipText = "Mức độ ưu tiên cao (cần xử lý sớm)";
+            break;
+          case "P2":
+            color = "#fadb14"; // Vàng
+            tooltipText =
+              "Mức độ ưu tiên trung bình (quan trọng nhưng không gấp)";
+            break;
+          case "P3":
+            color = "#52c41a"; // Xanh
+            tooltipText = "Mức độ ưu tiên thấp (có thể xử lý sau)";
+            break;
+          default:
+            color = "#d9d9d9"; // Mặc định (xám)
+            tooltipText = "Mức độ ưu tiên chưa được xác định";
+        }
+
+        return (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Tag
+              color={color}
+              style={{
+                color: priorityLevel === "P2" ? "#000" : "#fff", // Text trắng cho P0, P1, P3 và đen cho P2
+                borderRadius: "4px",
+                padding: "4px 8px",
+              }}
+            >
+              {priorityLevel || "Chưa xác định"}
+            </Tag>
+            <Tooltip title={tooltipText}>
+              <ExclamationCircleOutlined
+                style={{
+                  color: priorityLevel === "P2" ? "#000" : color, // Màu biểu tượng phù hợp với mức độ
+                  marginLeft: "8px",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                }}
+              />
+            </Tooltip>
+          </div>
+        );
+      },
+    },
+
     {
       title: showTooltips ? (
         <Tooltip title="Mô tả ngắn gọn về nhiệm vụ">
@@ -312,6 +389,7 @@ const Task: React.FC = () => {
           <Button
             type="link"
             onClick={() => {
+              console.log(record);
               setCurrentTask(record);
               editForm.setFieldsValue({
                 ...record,
@@ -1163,25 +1241,112 @@ const Task: React.FC = () => {
               <Checkbox />
             </Form.Item>
             <Form.Item
-              name="isImportant"
-              valuePropName="checked"
+              name="priorityLevel"
               label={
                 showTooltips ? (
-                  <Tooltip title="Đánh dấu nhiệm vụ là quan trọng!">
+                  <Tooltip title="Chọn mức độ ưu tiên của nhiệm vụ!">
                     <span>
-                      Quan trọng{" "}
+                      Mức độ ưu tiên{" "}
                       <InfoCircleOutlined
                         style={{ color: "#1890ff", marginLeft: 4 }}
                       />
                     </span>
                   </Tooltip>
                 ) : (
-                  <span>Quan trọng</span>
+                  <span>Mức độ ưu tiên</span>
                 )
               }
+              rules={[
+                { required: true, message: "Vui lòng chọn mức độ ưu tiên" },
+              ]}
             >
-              <Checkbox />
+              <Select
+                placeholder="Chọn mức độ ưu tiên"
+                style={{ width: "100%" }}
+              >
+                <Select.Option value="P0">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: "#ff4d4f", // Màu đỏ
+                      color: "#fff", // Văn bản trắng
+                      borderRadius: "4px",
+                      padding: "4px 8px",
+                    }}
+                  >
+                    P0 (Đỏ)
+                    <Tooltip title="Mức độ ưu tiên cao nhất (khẩn cấp - nguy hiểm)">
+                      <ExclamationCircleOutlined
+                        style={{ color: "#fff", marginLeft: 8 }}
+                      />
+                    </Tooltip>
+                  </div>
+                </Select.Option>
+                <Select.Option value="P1">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: "#faad14", // Màu cam
+                      color: "#fff", // Văn bản trắng
+                      borderRadius: "4px",
+                      padding: "4px 8px",
+                    }}
+                  >
+                    P1 (Cam)
+                    <Tooltip title="Mức độ ưu tiên cao (cần xử lý sớm)">
+                      <ExclamationCircleOutlined
+                        style={{ color: "#fff", marginLeft: 8 }}
+                      />
+                    </Tooltip>
+                  </div>
+                </Select.Option>
+                <Select.Option value="P2">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: "#fadb14", // Màu vàng
+                      color: "#000", // Văn bản đen để tạo tương phản
+                      borderRadius: "4px",
+                      padding: "4px 8px",
+                    }}
+                  >
+                    P2 (Vàng)
+                    <Tooltip title="Mức độ ưu tiên trung bình (quan trọng nhưng không gấp)">
+                      <ExclamationCircleOutlined
+                        style={{ color: "#000", marginLeft: 8 }}
+                      />
+                    </Tooltip>
+                  </div>
+                </Select.Option>
+                <Select.Option value="P3">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: "#52c41a", // Màu xanh
+                      color: "#fff", // Văn bản trắng
+                      borderRadius: "4px",
+                      padding: "4px 8px",
+                    }}
+                  >
+                    P3 (Xanh)
+                    <Tooltip title="Mức độ ưu tiên thấp (có thể xử lý sau)">
+                      <ExclamationCircleOutlined
+                        style={{ color: "#fff", marginLeft: 8 }}
+                      />
+                    </Tooltip>
+                  </div>
+                </Select.Option>
+              </Select>
             </Form.Item>
+
             <Form.Item
               name="deadline"
               label={
@@ -1367,26 +1532,115 @@ const Task: React.FC = () => {
             >
               <Checkbox />
             </Form.Item>
+
+            {/* Trường Priority Level */}
             <Form.Item
-              name="isImportant"
-              valuePropName="checked"
+              name="priorityLevel"
               label={
                 showTooltips ? (
-                  <Tooltip title="Đánh dấu nhiệm vụ là quan trọng!">
+                  <Tooltip title="Chọn mức độ ưu tiên của nhiệm vụ!">
                     <span>
-                      Quan trọng{" "}
+                      Mức độ ưu tiên{" "}
                       <InfoCircleOutlined
                         style={{ color: "#1890ff", marginLeft: 4 }}
                       />
                     </span>
                   </Tooltip>
                 ) : (
-                  <span>Quan trọng</span>
+                  <span>Mức độ ưu tiên</span>
                 )
               }
+              rules={[
+                { required: true, message: "Vui lòng chọn mức độ ưu tiên" },
+              ]}
             >
-              <Checkbox />
+              <Select
+                placeholder="Chọn mức độ ưu tiên"
+                style={{ width: "100%" }}
+              >
+                <Select.Option value="P0">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: "#ff4d4f", // Màu đỏ
+                      color: "#fff", // Văn bản trắng
+                      borderRadius: "4px",
+                      padding: "4px 8px",
+                    }}
+                  >
+                    P0 (Đỏ)
+                    <Tooltip title="Mức độ ưu tiên cao nhất (khẩn cấp - nguy hiểm)">
+                      <ExclamationCircleOutlined
+                        style={{ color: "#fff", marginLeft: 8 }}
+                      />
+                    </Tooltip>
+                  </div>
+                </Select.Option>
+                <Select.Option value="P1">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: "#faad14", // Màu cam
+                      color: "#fff", // Văn bản trắng
+                      borderRadius: "4px",
+                      padding: "4px 8px",
+                    }}
+                  >
+                    P1 (Cam)
+                    <Tooltip title="Mức độ ưu tiên cao (cần xử lý sớm)">
+                      <ExclamationCircleOutlined
+                        style={{ color: "#fff", marginLeft: 8 }}
+                      />
+                    </Tooltip>
+                  </div>
+                </Select.Option>
+                <Select.Option value="P2">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: "#fadb14", // Màu vàng
+                      color: "#000", // Văn bản đen để tạo tương phản
+                      borderRadius: "4px",
+                      padding: "4px 8px",
+                    }}
+                  >
+                    P2 (Vàng)
+                    <Tooltip title="Mức độ ưu tiên trung bình (quan trọng nhưng không gấp)">
+                      <ExclamationCircleOutlined
+                        style={{ color: "#000", marginLeft: 8 }}
+                      />
+                    </Tooltip>
+                  </div>
+                </Select.Option>
+                <Select.Option value="P3">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: "#52c41a", // Màu xanh
+                      color: "#fff", // Văn bản trắng
+                      borderRadius: "4px",
+                      padding: "4px 8px",
+                    }}
+                  >
+                    P3 (Xanh)
+                    <Tooltip title="Mức độ ưu tiên thấp (có thể xử lý sau)">
+                      <ExclamationCircleOutlined
+                        style={{ color: "#fff", marginLeft: 8 }}
+                      />
+                    </Tooltip>
+                  </div>
+                </Select.Option>
+              </Select>
             </Form.Item>
+
             <Form.Item
               name="deadline"
               label={
@@ -1427,7 +1681,6 @@ const Task: React.FC = () => {
                   <span>Giờ hoàn thành</span>
                 )
               }
-              rules={[{ message: "Vui lòng nhập phút hoàn thành dự kiến" }]}
             >
               <Input
                 type="number"

@@ -43,3 +43,20 @@
 :where(.css-dev-only-do-not-override-1x0dypw).ant-btn.ant-btn-icon-only {
   width: auto !important;
 }
+
+.priority-P0 {
+  background-color: #ff4d4f; /* Đỏ */
+  color: #fff; /* Văn bản trắng */
+}
+.priority-P1 {
+  background-color: #faad14; /* Cam */
+  color: #fff; /* Văn bản trắng */
+}
+.priority-P2 {
+  background-color: #fadb14; /* Vàng */
+  color: #000; /* Văn bản đen */
+}
+.priority-P3 {
+  background-color: #52c41a; /* Xanh */
+  color: #fff; /* Văn bản trắng */
+}
