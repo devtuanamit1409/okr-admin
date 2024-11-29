@@ -303,7 +303,6 @@ const ManagentTask: React.FC = () => {
                   </Tooltip>
                 </span>
               }
-              rules={[{ message: "Vui lòng chọn thời hạn" }]}
             >
               <DatePicker
                 showTime
@@ -325,7 +324,11 @@ const ManagentTask: React.FC = () => {
               }
               rules={[{ message: "Vui lòng nhập giờ hoàn thành" }]}
             >
-              <Input type="number" min={0} />
+              <Input
+                type="number"
+                min={0}
+                placeholder="Nhập thời gian dự kiến hoàn thành nhiệm vụ"
+              />
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit" block>
