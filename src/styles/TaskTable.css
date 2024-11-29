@@ -40,3 +40,6 @@
   background-color: #e6f7ff; /* Màu khi hover */
   transition: background-color 0.2s ease; /* Hiệu ứng mượt khi hover */
 }
+:where(.css-dev-only-do-not-override-1x0dypw).ant-btn.ant-btn-icon-only {
+  width: auto !important;
+}

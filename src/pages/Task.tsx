@@ -1030,13 +1030,7 @@ const Task: React.FC = () => {
                         {columns.map((col, colIndex) => (
                           <td key={`${rowIndex}-${colIndex}`}>
                             {col.dataIndex === "title" ? (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "8px",
-                                }}
-                              >
+                              <div className="flex justify-start items-center">
                                 <Button
                                   type="link"
                                   icon={
@@ -1056,10 +1050,11 @@ const Task: React.FC = () => {
                                     handleExpandRow(String(task.id))
                                   }
                                 />
-                                {col.render
-                                  ? col.render(task[col.dataIndex!], task)
-                                  : task[col.dataIndex!] || "N/A"}
-                                {/* Nút mở rộng/thu gọn */}
+                                <span>
+                                  {col.render
+                                    ? col.render(task[col.dataIndex!], task)
+                                    : task[col.dataIndex!] || "N/A"}
+                                </span>
                               </div>
                             ) : col.render ? (
                               col.render(task[col.dataIndex!], task)
