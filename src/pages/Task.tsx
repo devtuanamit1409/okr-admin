@@ -24,7 +24,12 @@ import { useFetchUser } from "../hooks/useFetchUser";
 import EditOutlined from "@ant-design/icons/EditOutlined";
 import DeleteOutlined from "@ant-design/icons/DeleteOutlined";
 import "../styles/Loading.css";
-import { DragOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  DragOutlined,
+  PlusOutlined,
+  CaretDownOutlined,
+  CaretUpOutlined,
+} from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import "../styles/TaskTable.css";
@@ -36,16 +41,13 @@ import {
   DropResult,
 } from "react-beautiful-dnd";
 interface Task {
-  id: number;
+  id: string;
   title: string;
   progess: number;
   Tags: string;
   deadline: string;
-  startAt?: string;
-  completion_time?: string;
-  repeat?: boolean;
-  hours?: number;
-  timeDone?: number;
+  description: string; // Thuộc tính cần thiết
+  [key: string]: any; // Các thuộc tính bổ sung
 }
 
 interface Column {
@@ -62,7 +64,7 @@ dayjs.extend(utc); // Kích hoạt plugin utc
 const Task: React.FC = () => {
   const { user } = useFetchUser(); // Lấy thông tin người dùng hiện tại
   const id = user?.id; // Lấy ID user từ thông tin user
-  const [tasks, setTasks] = useState([]); // State lưu trữ danh sách task
+  const [tasks, setTasks] = useState<Task[]>([]); // State lưu trữ danh sách task
   const [loading, setLoading] = useState(false); // Loading state
   const [selectedDate, setSelectedDate] = useState(dayjs()); // Ngày được chọn, mặc định là ngày hiện tại
   const [isEditModalVisible, setIsEditModalVisible] = useState(false); // Hiển thị modal chỉnh sửa task
@@ -79,6 +81,8 @@ const Task: React.FC = () => {
   const [isEditGoalModalVisible, setIsEditGoalModalVisible] = useState(false);
   const [goalForm] = Form.useForm();
   const [filteredGoals, setFilteredGoals] = useState<any[]>(goalDaily);
+  const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
+
   const [columns, setColumns] = useState<Column[]>([
     {
       title: (
@@ -921,6 +925,13 @@ const Task: React.FC = () => {
     },
   ];
 
+  const handleExpandRow = (rowKey: string) => {
+    if (expandedRowKeys.includes(rowKey)) {
+      setExpandedRowKeys(expandedRowKeys.filter((key) => key !== rowKey));
+    } else {
+      setExpandedRowKeys([...expandedRowKeys, rowKey]);
+    }
+  };
   return (
     <AppLayout
       pageTitle={`Task của tôi - ${user?.name}`}
@@ -1131,16 +1142,6 @@ const Task: React.FC = () => {
       </div>
 
       <div>
-        {/* <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={tasks}
-          loading={loading}
-          pagination={false}
-          rowClassName={(record) =>
-            record.isImportant ? "important-task" : ""
-          }
-        /> */}
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="columns" direction="horizontal" type="COLUMN">
             {(provided) => (
@@ -1189,15 +1190,71 @@ const Task: React.FC = () => {
                 </thead>
                 <tbody>
                   {tasks.map((task, rowIndex) => (
-                    <tr key={rowIndex}>
-                      {columns.map((col, colIndex) => (
-                        <td key={`${rowIndex}-${colIndex}`}>
-                          {col.render
-                            ? col.render(task[col.dataIndex!], task) // Dùng "!" để chắc chắn dataIndex không null
-                            : task[col.dataIndex!] || "N/A"}
-                        </td>
-                      ))}
-                    </tr>
+                    <>
+                      <tr key={rowIndex}>
+                        {columns.map((col, colIndex) => (
+                          <td key={`${rowIndex}-${colIndex}`}>
+                            {col.dataIndex === "title" ? (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
+                                }}
+                              >
+                                {col.render
+                                  ? col.render(task[col.dataIndex!], task)
+                                  : task[col.dataIndex!] || "N/A"}
+                                {/* Nút mở rộng/thu gọn */}
+                                <Button
+                                  type="link"
+                                  icon={
+                                    expandedRowKeys.includes(
+                                      String(task.id)
+                                    ) ? (
+                                      <CaretUpOutlined
+                                        style={{ color: "#1890ff" }}
+                                      />
+                                    ) : (
+                                      <CaretDownOutlined
+                                        style={{ color: "#1890ff" }}
+                                      />
+                                    )
+                                  }
+                                  onClick={() =>
+                                    handleExpandRow(String(task.id))
+                                  }
+                                />
+                              </div>
+                            ) : col.render ? (
+                              col.render(task[col.dataIndex!], task)
+                            ) : (
+                              task[col.dataIndex!] || "N/A"
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                      {/* Nội dung mở rộng */}
+                      {expandedRowKeys.includes(String(task.id)) && (
+                        <tr key={`${rowIndex}-expanded`}>
+                          <td colSpan={columns.length}>
+                            <div
+                              style={{
+                                padding: "16px",
+                                backgroundColor: "#f9f9f9",
+                                border: "1px solid #e8e8e8",
+                                borderRadius: "8px",
+                              }}
+                            >
+                              <p className="text-start">
+                                <strong>Mô tả chi tiết:</strong>{" "}
+                                {task.description || "Không có mô tả"}
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   ))}
                 </tbody>
               </table>
