@@ -310,20 +310,6 @@ const Task: React.FC = () => {
 
   // Định nghĩa cột của bảng
   const columns = [
-    // {
-    //   title: (
-    //     <Tooltip title="Tiêu đề của nhiệm vụ">
-    //       <span>
-    //         Tiêu đề{" "}
-    //         <InfoCircleOutlined
-    //           style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-    //         />
-    //       </span>
-    //     </Tooltip>
-    //   ),
-    //   dataIndex: "title",
-    //   key: "title",
-    // },
     {
       title: (
         <Tooltip title="Mô tả ngắn gọn về nhiệm vụ">
@@ -337,6 +323,7 @@ const Task: React.FC = () => {
       ),
       dataIndex: "description",
       key: "description",
+      render: (text: string) => text || "Chưa xác định",
     },
     {
       title: (
@@ -351,13 +338,16 @@ const Task: React.FC = () => {
       ),
       dataIndex: "progess",
       key: "progess",
-      render: (progress: number) => (
-        <Progress
-          percent={progress || 0}
-          size="small"
-          status={progress === 100 ? "success" : "active"}
-        />
-      ),
+      render: (progress: number) =>
+        progress !== undefined ? (
+          <Progress
+            percent={progress || 0}
+            size="small"
+            status={progress === 100 ? "success" : "active"}
+          />
+        ) : (
+          "Chưa xác định"
+        ),
     },
     {
       title: (
@@ -374,7 +364,7 @@ const Task: React.FC = () => {
       key: "Tags",
       render: (tag: string) => {
         let color;
-        let translatedTag; // Thêm biến để lưu trạng thái dịch sang tiếng Việt
+        let translatedTag;
         switch (tag) {
           case "Done":
             color = "green";
@@ -394,7 +384,7 @@ const Task: React.FC = () => {
             break;
           default:
             color = "default";
-            translatedTag = "Không xác định";
+            translatedTag = "Chưa xác định";
         }
         return <Tag color={color}>{translatedTag}</Tag>;
       },
@@ -412,7 +402,8 @@ const Task: React.FC = () => {
       ),
       dataIndex: "startAt",
       key: "startAt",
-      render: (text: string) => dayjs(text).format("YYYY-MM-DD HH:mm"),
+      render: (text: string) =>
+        text ? dayjs(text).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
     },
     {
       title: (
@@ -427,7 +418,8 @@ const Task: React.FC = () => {
       ),
       dataIndex: "completion_time",
       key: "completion_time",
-      render: (text: string) => dayjs(text).format("YYYY-MM-DD HH:mm"),
+      render: (text: string) =>
+        text ? dayjs(text).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
     },
     {
       title: (
@@ -442,7 +434,8 @@ const Task: React.FC = () => {
       ),
       dataIndex: "repeat",
       key: "repeat",
-      render: (repeat: boolean) => (repeat ? "Có" : "Không"),
+      render: (repeat: boolean) =>
+        repeat !== undefined ? (repeat ? "Có" : "Không") : "Chưa xác định",
     },
     {
       title: (
@@ -457,7 +450,8 @@ const Task: React.FC = () => {
       ),
       dataIndex: "deadline",
       key: "deadline",
-      render: (deadline: string) => dayjs(deadline).format("YYYY-MM-DD HH:mm"),
+      render: (deadline: string) =>
+        deadline ? dayjs(deadline).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
     },
     {
       title: (
@@ -472,7 +466,8 @@ const Task: React.FC = () => {
       ),
       dataIndex: "hours",
       key: "hours",
-      render: (hours: number) => `${hours} giờ`,
+      render: (hours: number) =>
+        hours !== undefined ? `${hours} giờ` : "Chưa xác định",
     },
     {
       title: (
@@ -487,7 +482,8 @@ const Task: React.FC = () => {
       ),
       dataIndex: "timeDone",
       key: "timeDone",
-      render: (timeDone: number) => `${timeDone}`,
+      render: (timeDone: number) =>
+        timeDone !== null ? `${timeDone}` : "Chưa xác định",
     },
     {
       title: (
@@ -526,7 +522,6 @@ const Task: React.FC = () => {
           >
             Chỉnh sửa
           </Button>
-
           <Button
             disabled={record.progess === 100}
             type="link"
@@ -549,6 +544,7 @@ const Task: React.FC = () => {
       ),
     },
   ];
+
   const goalDailyColumns = [
     {
       title: (
@@ -884,7 +880,6 @@ const Task: React.FC = () => {
             </Form.Item>
           </Form>
         </Modal>
-
         <Modal
           title="Thêm Task"
           visible={isModalVisible}
@@ -894,7 +889,16 @@ const Task: React.FC = () => {
           <Form form={form} layout="vertical" onFinish={handleAddTask}>
             <Form.Item
               name="title"
-              label="Tiêu đề"
+              label={
+                <span>
+                  Tiêu đề{" "}
+                  <Tooltip title="Nhập tiêu đề của task!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[
                 { required: true, message: "Vui lòng nhập tiêu đề task" },
               ]}
@@ -903,7 +907,16 @@ const Task: React.FC = () => {
             </Form.Item>
             <Form.Item
               name="description"
-              label="Mô tả"
+              label={
+                <span>
+                  Mô tả{" "}
+                  <Tooltip title="Nhập mô tả chi tiết về nhiệm vụ!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[{ required: true, message: "Vui lòng nhập mô tả task" }]}
             >
               <Input.TextArea />
@@ -911,20 +924,47 @@ const Task: React.FC = () => {
             <Form.Item
               name="repeat"
               valuePropName="checked"
-              label="Lặp lại mỗi ngày"
+              label={
+                <span>
+                  Lặp lại mỗi ngày{" "}
+                  <Tooltip title="Bật nếu nhiệm vụ lặp lại hàng ngày!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
             >
               <Checkbox />
             </Form.Item>
             <Form.Item
               name="isImportant"
               valuePropName="checked"
-              label="Quan trọng"
+              label={
+                <span>
+                  Quan trọng{" "}
+                  <Tooltip title="Đánh dấu nhiệm vụ là quan trọng!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
             >
               <Checkbox />
             </Form.Item>
             <Form.Item
               name="deadline"
-              label="Hạn chót"
+              label={
+                <span>
+                  Hạn chót{" "}
+                  <Tooltip title="Chọn hạn chót hoàn thành nhiệm vụ!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[{ required: true, message: "Vui lòng chọn thời hạn" }]}
             >
               <DatePicker
@@ -933,13 +973,25 @@ const Task: React.FC = () => {
                 style={{ width: "100%" }}
               />
             </Form.Item>
-            {/* Trường giờ hoàn thành */}
             <Form.Item
               name="hours"
-              label="Giờ hoàn thành"
-              rules={[{ message: "Vui lòng nhập giờ hoàn thành" }]}
+              label={
+                <span>
+                  Giờ hoàn thành{" "}
+                  <Tooltip title="Nhập thời gian dự kiến hoàn thành nhiệm vụ (tính bằng phút)!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
+              rules={[{ message: "Vui lòng nhập phút hoàn thành dự kiến" }]}
             >
-              <Input type="number" min={0} />
+              <Input
+                type="number"
+                min={0}
+                placeholder="Nhập số phút hoàn thành dự kiến"
+              />
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit" block>

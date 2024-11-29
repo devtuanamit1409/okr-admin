@@ -111,23 +111,28 @@ const ManagentTask: React.FC = () => {
       title: "Tiêu đề",
       dataIndex: "title",
       key: "title",
+      render: (text: string) => text || "Chưa xác định",
     },
     {
       title: "Mô tả",
       dataIndex: "description",
       key: "description",
+      render: (text: string) => text || "Chưa xác định",
     },
     {
       title: "Tiến độ",
       dataIndex: "progess",
       key: "progess",
-      render: (progress: number) => (
-        <Progress
-          percent={progress || 0} // Hiển thị tiến độ với giá trị mặc định là 0 nếu không có
-          size="small"
-          status={progress === 100 ? "success" : "active"} // Đổi màu khi đạt 100%
-        />
-      ),
+      render: (progress: number) =>
+        progress !== undefined ? (
+          <Progress
+            percent={progress || 0}
+            size="small"
+            status={progress === 100 ? "success" : "active"}
+          />
+        ) : (
+          "Chưa xác định"
+        ),
     },
     {
       title: "Trạng thái",
@@ -151,32 +156,36 @@ const ManagentTask: React.FC = () => {
           default:
             color = "default";
         }
-        return <Tag color={color}>{tag || "N/A"}</Tag>; // Hiển thị tag với màu phù hợp hoặc N/A nếu không có
+        return <Tag color={color}>{tag || "Chưa xác định"}</Tag>;
       },
     },
     {
       title: "Thời gian hoàn thành",
       dataIndex: "completion_time",
       key: "completion_time",
-      render: (text: string) => dayjs(text).format("YYYY-MM-DD HH:mm"),
+      render: (text: string) =>
+        text ? dayjs(text).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
     },
     {
       title: "Lặp lại mỗi ngày",
       dataIndex: "repeat",
       key: "repeat",
-      render: (repeat: boolean) => (repeat ? "Có" : "Không"),
+      render: (repeat: boolean) =>
+        repeat !== undefined ? (repeat ? "Có" : "Không") : "Chưa xác định",
     },
     {
       title: "Hạn chót",
       dataIndex: "deadline",
       key: "deadline",
-      render: (deadline: string) => dayjs(deadline).format("YYYY-MM-DD HH:mm"),
+      render: (deadline: string) =>
+        deadline ? dayjs(deadline).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
     },
     {
       title: "Giờ hoàn thành",
       dataIndex: "hours",
       key: "hours",
-      render: (hours: number) => `${hours} giờ`,
+      render: (hours: number) =>
+        hours !== undefined ? `${hours} giờ` : "Chưa xác định",
     },
   ];
 
