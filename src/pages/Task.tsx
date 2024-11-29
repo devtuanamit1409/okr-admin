@@ -237,7 +237,7 @@ const Task: React.FC = () => {
       dataIndex: "hours",
       key: "hours",
       render: (hours: number) =>
-        hours !== undefined ? `${hours} giờ` : "Chưa xác định",
+        hours !== null ? `${hours} giờ` : "Chưa xác định",
     },
     {
       title: (

@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { Table, Tag, Progress, Tooltip } from "antd";
+import { Tag, Progress, Tooltip } from "antd";
 import {
   DragDropContext,
   Droppable,
   Draggable,
   DropResult,
 } from "react-beautiful-dnd";
-import { InfoCircleOutlined, DragOutlined } from "@ant-design/icons";
+import { DragOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "../styles/TaskTable.css"; // Import CSS for styles
 
