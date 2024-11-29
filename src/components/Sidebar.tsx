@@ -1,11 +1,13 @@
 import React from "react";
 import { Layout, Menu } from "antd";
 import {
+  CheckSquareOutlined,
   ClusterOutlined,
   DashboardOutlined,
-  IdcardOutlined,
-  ProfileOutlined,
+  FlagOutlined,
+  SettingOutlined,
   TeamOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom"; // Dùng React Router
 import { useFetchUser } from "../hooks/useFetchUser";
@@ -26,7 +28,7 @@ const Sidebar: React.FC = () => {
     if (currentPath.startsWith("/position")) return "/position";
     if (currentPath.startsWith("/profile")) return "/profile";
     if (currentPath.startsWith("/goal")) return "/goal";
-
+    if (currentPath.startsWith("/setting")) return "/setting";
     return ""; // Trường hợp không khớp
   };
 
@@ -56,16 +58,18 @@ const Sidebar: React.FC = () => {
         style={{ height: "100%", borderRight: 0 }}
       >
         {/* Tab dành cho mọi user */}
-        <Menu.Item key="/task" icon={<ProfileOutlined />}>
+        <Menu.Item key="/task" icon={<CheckSquareOutlined />}>
           <Link to="/task">Task của tôi</Link>
         </Menu.Item>
-        <Menu.Item key="/profile" icon={<IdcardOutlined />}>
+        <Menu.Item key="/profile" icon={<UserOutlined />}>
           <Link to="/profile">Hồ sơ</Link>
         </Menu.Item>
-        <Menu.Item key="/goal" icon={<IdcardOutlined />}>
+        <Menu.Item key="/goal" icon={<FlagOutlined />}>
           <Link to="/goal">Mục tiêu</Link>
         </Menu.Item>
-
+        <Menu.Item key="/setting" icon={<SettingOutlined />}>
+          <Link to="/setting">Cài Đặt</Link>
+        </Menu.Item>
         {/* Tab chỉ dành cho admin */}
         {user?.postion?.isAdmin && (
           <>

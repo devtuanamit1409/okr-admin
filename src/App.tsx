@@ -9,6 +9,7 @@ import Task from "./pages/Task";
 import Position from "./pages/Position";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Goal from "./pages/Goal";
+import Setting from "./pages/Setting";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route element={<Task />} path="/task" />
         <Route element={<Profile />} path="/profile" />
         <Route element={<Goal />} path="/goal" />
+        <Route element={<Setting />} path="/setting" />
 
         {/* Route dành riêng cho admin */}
         <Route

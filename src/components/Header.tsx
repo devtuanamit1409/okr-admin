@@ -107,10 +107,8 @@ const HeaderBar: React.FC<HeaderProps> = ({ pageTitle }) => {
         {pageTitle}
       </Typography.Title>
 
-      {/* Dropdown tài khoản và công tắc hướng dẫn */}
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        {/* Công tắc hướng dẫn */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        {/* <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <Tooltip title="Bật/Tắt chế độ hướng dẫn">
             <QuestionCircleOutlined
               style={{ color: "#1890ff", fontSize: "18px", cursor: "pointer" }}
@@ -122,7 +120,7 @@ const HeaderBar: React.FC<HeaderProps> = ({ pageTitle }) => {
             checkedChildren="Bật hướng dẫn"
             unCheckedChildren="Tắt hướng dẫn"
           />
-        </div>
+        </div> */}
 
         {/* Dropdown tài khoản */}
         <Dropdown overlay={menu} placement="bottomRight" arrow>
