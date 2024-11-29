@@ -11,6 +11,7 @@ import {
   Button,
   Checkbox,
   Space,
+  Select,
 } from "antd";
 import utc from "dayjs/plugin/utc"; // Import plugin utc
 
@@ -502,7 +503,7 @@ const Task: React.FC = () => {
           <Button
             type="primary"
             danger
-            disabled={record.startAt}
+            disabled={record.Tags == "In progress" || record.Tags == "Done"}
             onClick={() => {
               handleStartTask(record.id);
             }}
@@ -974,7 +975,30 @@ const Task: React.FC = () => {
                 </span>
               }
             >
-              <Input type="number" min={0} />
+              <Input type="number" />
+            </Form.Item>
+            {/* Trường cập nhật Tags */}
+            <Form.Item
+              name="Tags"
+              label={
+                <span>
+                  Trạng thái{" "}
+                  <Tooltip title="Cập nhật trạng thái của nhiệm vụ!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
+            >
+              <Select placeholder="Chọn trạng thái">
+                <Select.Option value="None">Chưa bắt đầu</Select.Option>
+                <Select.Option value="In progress">
+                  Đang thực hiện
+                </Select.Option>
+                <Select.Option value="Pending">Đang chờ xử lý</Select.Option>
+                <Select.Option value="Done">Hoàn thành</Select.Option>
+              </Select>
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit" block>
