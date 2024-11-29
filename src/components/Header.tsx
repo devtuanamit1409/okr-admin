@@ -1,21 +1,7 @@
 import React, { useState, useEffect } from "react";
-import {
-  Layout,
-  Dropdown,
-  Menu,
-  Typography,
-  Avatar,
-  Spin,
-  Switch,
-  Tooltip,
-} from "antd";
-import {
-  UserOutlined,
-  LogoutOutlined,
-  QuestionCircleOutlined,
-} from "@ant-design/icons";
+import { Layout, Dropdown, Menu, Typography, Avatar, Spin } from "antd";
+import { UserOutlined, LogoutOutlined } from "@ant-design/icons";
 import { useFetchUser } from "../hooks/useFetchUser";
-import api from "../services/api"; // Import hàm gọi API
 
 const { Header } = Layout;
 
@@ -37,21 +23,6 @@ const HeaderBar: React.FC<HeaderProps> = ({ pageTitle }) => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     window.location.href = "/";
-  };
-
-  const handleGuideSwitchChange = async (checked: boolean) => {
-    setIsGuideEnabled(checked); // Cập nhật ngay trong giao diện
-
-    try {
-      await api.put(`/users/${user?.id}`, {
-        isInstruct: checked,
-      });
-      window.location.reload();
-    } catch (error) {
-      console.error("Không thể cập nhật trạng thái hướng dẫn:", error);
-      // Hoàn tác trạng thái nếu có lỗi
-      setIsGuideEnabled(!checked);
-    }
   };
 
   const menu = (
@@ -108,20 +79,6 @@ const HeaderBar: React.FC<HeaderProps> = ({ pageTitle }) => {
       </Typography.Title>
 
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        {/* <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <Tooltip title="Bật/Tắt chế độ hướng dẫn">
-            <QuestionCircleOutlined
-              style={{ color: "#1890ff", fontSize: "18px", cursor: "pointer" }}
-            />
-          </Tooltip>
-          <Switch
-            checked={isGuideEnabled ?? false} // Nếu chưa có giá trị, mặc định là false
-            onChange={handleGuideSwitchChange}
-            checkedChildren="Bật hướng dẫn"
-            unCheckedChildren="Tắt hướng dẫn"
-          />
-        </div> */}
-
         {/* Dropdown tài khoản */}
         <Dropdown overlay={menu} placement="bottomRight" arrow>
           <div
