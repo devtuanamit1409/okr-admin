@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ReactNode } from "react";
 import {
   Table,
   DatePicker,
@@ -24,9 +24,36 @@ import { useFetchUser } from "../hooks/useFetchUser";
 import EditOutlined from "@ant-design/icons/EditOutlined";
 import DeleteOutlined from "@ant-design/icons/DeleteOutlined";
 import "../styles/Loading.css";
-import { PlusOutlined } from "@ant-design/icons";
+import { DragOutlined, PlusOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
+import "../styles/TaskTable.css";
+
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  DropResult,
+} from "react-beautiful-dnd";
+interface Task {
+  id: number;
+  title: string;
+  progess: number;
+  Tags: string;
+  deadline: string;
+  startAt?: string;
+  completion_time?: string;
+  repeat?: boolean;
+  hours?: number;
+  timeDone?: number;
+}
+
+interface Column {
+  title: React.ReactNode;
+  dataIndex?: keyof Task;
+  key: string;
+  render?: (value: any, record?: Task) => React.ReactNode;
+}
 
 dayjs.extend(customParseFormat);
 
@@ -52,265 +79,7 @@ const Task: React.FC = () => {
   const [isEditGoalModalVisible, setIsEditGoalModalVisible] = useState(false);
   const [goalForm] = Form.useForm();
   const [filteredGoals, setFilteredGoals] = useState<any[]>(goalDaily);
-
-  const handleAddGoal = async (values: any) => {
-    try {
-      const newGoal = {
-        ...values,
-        progess: 0, // Mặc định tiến độ = 0
-      };
-
-      // Thêm mục tiêu mới vào danh sách hiện tại
-      const updatedGoals = [...goalDaily, newGoal];
-
-      // Gửi danh sách cập nhật lên API
-      await api.put(`/users/${user?.id}`, {
-        goalDaily: updatedGoals,
-      });
-
-      // Cập nhật trực tiếp state `goalDaily`
-      window.location.reload();
-      message.success("Thêm mục tiêu thành công!");
-      setIsAddModalVisible(false);
-      form.resetFields();
-    } catch (error) {
-      console.error("Lỗi khi thêm mục tiêu:", error);
-      message.error("Không thể thêm mục tiêu. Vui lòng thử lại sau.");
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      setGoalDaily(user.goalDaily || []); // Cập nhật goalDaily từ user
-    }
-  }, [user, handleAddGoal]);
-
-  // Hàm lấy danh sách task theo user và ngày
-  const fetchTasks = async (date: string) => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/users/${id}`, {
-        params: {
-          populate: "tasks", // Populate tasks để lấy danh sách task
-        },
-      });
-
-      const userTasks = response.data.data?.tasks || [];
-
-      // Lọc task theo ngày
-      const filteredTasks = userTasks.filter((task: any) => {
-        const taskDate = dayjs(task.createdAt).format("YYYY-MM-DD");
-        return taskDate === date;
-      });
-
-      // Sắp xếp theo thứ tự:
-      // 1. Task có `isImportant` lên đầu
-      // 2. Task có `Tags` = "Done" tiếp theo
-      // 3. Các task còn lại
-      const sortedTasks = filteredTasks.sort((a: any, b: any) => {
-        if (a.isImportant && !b.isImportant) return -1; // isImportant lên đầu
-        if (!a.isImportant && b.isImportant) return 1;
-        if (a.Tags === "Done" && b.Tags !== "Done") return -1; // Tags = "Done" tiếp theo
-        if (a.Tags !== "Done" && b.Tags === "Done") return 1;
-        return 0; // Giữ nguyên thứ tự nếu không thuộc các điều kiện trên
-      });
-
-      // Cộng dồn trường hours
-      const totalHours = sortedTasks.reduce((sum: number, task: any) => {
-        return sum + (task.hours || 0); // Nếu task không có hours, mặc định là 0
-      }, 0);
-
-      setTasks(sortedTasks); // Cập nhật danh sách task
-      setHoursWork(totalHours); // Cập nhật tổng thời gian làm việc
-    } catch (error) {
-      message.error("Không thể tải danh sách công việc. Vui lòng thử lại sau.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEditGoalClick = (goal: any) => {
-    setCurrentGoal(goal);
-    goalForm.setFieldsValue(goal); // Sử dụng form riêng cho goalDaily
-    setIsEditGoalModalVisible(true); // Mở modal sửa mục tiêu
-  };
-
-  const handleDeleteGoal = async (goalId: string) => {
-    Modal.confirm({
-      title: "Bạn có chắc chắn muốn xóa mục tiêu này không?",
-      content: "Thao tác này không thể hoàn tác.",
-      okText: "Xóa",
-      okType: "danger",
-      cancelText: "Hủy",
-      onOk: async () => {
-        try {
-          const updatedGoals = goalDaily.filter((goal) => goal.id !== goalId);
-          await api.put(`/users/${user?.id}`, { goalDaily: updatedGoals });
-          setGoalDaily(updatedGoals);
-          message.success("Xóa mục tiêu thành công!");
-          window.location.reload();
-        } catch (error) {
-          message.error("Không thể xóa mục tiêu. Vui lòng thử lại sau.");
-        }
-      },
-    });
-  };
-  // Gọi API lần đầu khi component được mount
-  useEffect(() => {
-    if (id) {
-      fetchTasks(selectedDate.format("YYYY-MM-DD"));
-    }
-  }, [id]);
-
-  // Hàm xử lý khi người dùng chọn ngày khác
-  const handleDateChange = (date: dayjs.Dayjs | null) => {
-    if (date) {
-      const formattedDate = date.format("YYYY-MM-DD");
-      setSelectedDate(date);
-
-      // Lọc goalDaily dựa trên ngày
-      const filtered = goalDaily.filter(
-        (goal) => dayjs(goal.createdAt).format("YYYY-MM-DD") === formattedDate
-      );
-      setFilteredGoals(filtered); // Cập nhật danh sách mục tiêu hiển thị
-
-      // Gọi fetchTasks để cập nhật danh sách nhiệm vụ
-      fetchTasks(formattedDate);
-    } else {
-      // Nếu không chọn ngày, hiển thị tất cả mục tiêu
-      setFilteredGoals(goalDaily);
-    }
-  };
-
-  useEffect(() => {
-    setFilteredGoals(goalDaily);
-  }, [goalDaily]);
-
-  // Hàm xử lý cập nhật tiến độ
-  const handleUpdateProgress = async (values: any) => {
-    if (!currentTask) return;
-    try {
-      await api.put(`/tasks/${currentTask.id}`, {
-        data: {
-          progess: values.progess,
-        },
-      });
-      message.success("Tiến độ đã được cập nhật.");
-      setIsProgressModalVisible(false);
-      fetchTasks(selectedDate.format("YYYY-MM-DD"));
-    } catch (error) {
-      message.error("Không thể cập nhật tiến độ. Vui lòng thử lại sau.");
-    }
-  };
-
-  // Hàm xử lý chỉnh sửa task
-  const handleEditTask = async (values: any) => {
-    if (!currentTask) return;
-    try {
-      const updatedValues = { ...values };
-
-      // Định dạng lại trường deadline
-      if (updatedValues.deadline) {
-        updatedValues.deadline = updatedValues.deadline.format(
-          "YYYY-MM-DD HH:mm:ss"
-        );
-      }
-
-      // Đảm bảo trường hours là số
-      if (updatedValues.hours) {
-        updatedValues.hours = Number(updatedValues.hours);
-      }
-
-      // Định dạng lại các trường ngày giờ khác nếu cần
-      // ...
-
-      await api.put(`/tasks/${currentTask.id}`, {
-        data: updatedValues,
-      });
-      message.success("Task đã được cập nhật.");
-      setIsEditModalVisible(false);
-      fetchTasks(selectedDate.format("YYYY-MM-DD"));
-    } catch (error) {
-      console.error("Lỗi khi cập nhật task:", error);
-      message.error("Không thể cập nhật task. Vui lòng thử lại sau.");
-    }
-  };
-
-  // Hàm xử lý xóa task
-  const handleDeleteTask = async (taskId: number) => {
-    Modal.confirm({
-      title: "Bạn có chắc chắn muốn xóa task này không?",
-      content: "Thao tác này không thể hoàn tác.",
-      okText: "Xóa",
-      okType: "danger",
-      cancelText: "Hủy",
-      onOk: async () => {
-        try {
-          await api.delete(`/tasks/${taskId}`);
-          message.success("Task đã được xóa.");
-          fetchTasks(selectedDate.format("YYYY-MM-DD")); // Làm mới danh sách task
-        } catch (error) {
-          message.error("Không thể xóa task. Vui lòng thử lại sau.");
-        }
-      },
-    });
-  };
-
-  // hàm thêm task
-  const handleAddTask = async (values: any) => {
-    try {
-      await api.post("/tasks", {
-        data: {
-          ...values,
-          idUser: id, // Gắn user ID cho task
-        },
-      });
-      message.success("Task đã được thêm thành công!");
-      setIsModalVisible(false); // Đóng modal
-      form.resetFields(); // Reset form
-      fetchTasks(selectedDate.format("YYYY-MM-DD")); // Reload task list
-    } catch (error) {
-      message.error("Không thể thêm task. Vui lòng thử lại sau.");
-    }
-  };
-
-  const handleStartTask = async (taskId: number) => {
-    try {
-      // Lưu thời gian hiện tại dưới dạng UTC
-      const utcTime = dayjs().utc().format("YYYY-MM-DD HH:mm:ss");
-
-      await api.put(`/tasks/${taskId}`, {
-        data: {
-          startAt: utcTime,
-        },
-      });
-
-      message.success("Task đã được bắt đầu.");
-      fetchTasks(selectedDate.format("YYYY-MM-DD"));
-    } catch (error) {
-      message.error("Không thể bắt đầu task. Vui lòng thử lại sau.");
-    }
-  };
-
-  const handleEditGoal = async (values: any) => {
-    if (!currentGoal) return;
-    try {
-      const updatedGoals = goalDaily.map((goal) =>
-        goal.id === currentGoal.id ? { ...goal, ...values } : goal
-      );
-      await api.put(`/users/${user?.id}`, { goalDaily: updatedGoals });
-      setGoalDaily(updatedGoals);
-      window.location.reload();
-      message.success("Cập nhật mục tiêu thành công!");
-      setIsEditGoalModalVisible(false); // Đóng modal sửa goalDaily
-      goalForm.resetFields(); // Reset form goalDaily
-    } catch (error) {
-      message.error("Không thể cập nhật mục tiêu. Vui lòng thử lại sau.");
-    }
-  };
-
-  // Định nghĩa cột của bảng
-  const columns = [
+  const [columns, setColumns] = useState<Column[]>([
     {
       title: (
         <Tooltip title="Mô tả ngắn gọn về nhiệm vụ">
@@ -524,7 +293,7 @@ const Task: React.FC = () => {
             Chỉnh sửa
           </Button>
           <Button
-            disabled={record.progess === 100}
+            disabled={record.Tags == "Done"}
             type="link"
             onClick={() => {
               setCurrentTask(record);
@@ -544,7 +313,511 @@ const Task: React.FC = () => {
         </>
       ),
     },
-  ];
+  ]);
+  const handleDragEnd = (result: DropResult): void => {
+    const { source, destination } = result;
+
+    if (!destination) return;
+
+    const reorderedColumns = Array.from(columns);
+    const [removed] = reorderedColumns.splice(source.index, 1);
+    reorderedColumns.splice(destination.index, 0, removed);
+
+    setColumns(reorderedColumns);
+  };
+  const handleAddGoal = async (values: any) => {
+    try {
+      const newGoal = {
+        ...values,
+        progess: 0, // Mặc định tiến độ = 0
+      };
+
+      // Thêm mục tiêu mới vào danh sách hiện tại
+      const updatedGoals = [...goalDaily, newGoal];
+
+      // Gửi danh sách cập nhật lên API
+      await api.put(`/users/${user?.id}`, {
+        goalDaily: updatedGoals,
+      });
+
+      // Cập nhật trực tiếp state `goalDaily`
+      window.location.reload();
+      message.success("Thêm mục tiêu thành công!");
+      setIsAddModalVisible(false);
+      form.resetFields();
+    } catch (error) {
+      console.error("Lỗi khi thêm mục tiêu:", error);
+      message.error("Không thể thêm mục tiêu. Vui lòng thử lại sau.");
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      setGoalDaily(user.goalDaily || []); // Cập nhật goalDaily từ user
+    }
+  }, [user, handleAddGoal]);
+
+  // Hàm lấy danh sách task theo user và ngày
+  const fetchTasks = async (date: string) => {
+    setLoading(true);
+    try {
+      const response = await api.get(`/users/${id}`, {
+        params: {
+          populate: "tasks", // Populate tasks để lấy danh sách task
+        },
+      });
+
+      const userTasks = response.data.data?.tasks || [];
+
+      // Lọc task theo ngày
+      const filteredTasks = userTasks.filter((task: any) => {
+        const taskDate = dayjs(task.createdAt).format("YYYY-MM-DD");
+        return taskDate === date;
+      });
+
+      // Sắp xếp theo thứ tự:
+      // 1. Task có `isImportant` lên đầu
+      // 2. Task có `Tags` = "Done" tiếp theo
+      // 3. Các task còn lại
+      const sortedTasks = filteredTasks.sort((a: any, b: any) => {
+        if (a.isImportant && !b.isImportant) return -1; // isImportant lên đầu
+        if (!a.isImportant && b.isImportant) return 1;
+        if (a.Tags === "Done" && b.Tags !== "Done") return -1; // Tags = "Done" tiếp theo
+        if (a.Tags !== "Done" && b.Tags === "Done") return 1;
+        return 0; // Giữ nguyên thứ tự nếu không thuộc các điều kiện trên
+      });
+
+      // Cộng dồn trường hours
+      const totalHours = sortedTasks.reduce((sum: number, task: any) => {
+        return sum + (task.hours || 0); // Nếu task không có hours, mặc định là 0
+      }, 0);
+
+      setTasks(sortedTasks); // Cập nhật danh sách task
+      setHoursWork(totalHours); // Cập nhật tổng thời gian làm việc
+    } catch (error) {
+      message.error("Không thể tải danh sách công việc. Vui lòng thử lại sau.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditGoalClick = (goal: any) => {
+    setCurrentGoal(goal);
+    goalForm.setFieldsValue(goal); // Sử dụng form riêng cho goalDaily
+    setIsEditGoalModalVisible(true); // Mở modal sửa mục tiêu
+  };
+
+  const handleDeleteGoal = async (goalId: string) => {
+    Modal.confirm({
+      title: "Bạn có chắc chắn muốn xóa mục tiêu này không?",
+      content: "Thao tác này không thể hoàn tác.",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          const updatedGoals = goalDaily.filter((goal) => goal.id !== goalId);
+          await api.put(`/users/${user?.id}`, { goalDaily: updatedGoals });
+          setGoalDaily(updatedGoals);
+          message.success("Xóa mục tiêu thành công!");
+          window.location.reload();
+        } catch (error) {
+          message.error("Không thể xóa mục tiêu. Vui lòng thử lại sau.");
+        }
+      },
+    });
+  };
+  // Gọi API lần đầu khi component được mount
+  useEffect(() => {
+    if (id) {
+      fetchTasks(selectedDate.format("YYYY-MM-DD"));
+    }
+  }, [id]);
+
+  // Hàm xử lý khi người dùng chọn ngày khác
+  const handleDateChange = (date: dayjs.Dayjs | null) => {
+    if (date) {
+      const formattedDate = date.format("YYYY-MM-DD");
+      setSelectedDate(date);
+
+      // Lọc goalDaily dựa trên ngày
+      const filtered = goalDaily.filter(
+        (goal) => dayjs(goal.createdAt).format("YYYY-MM-DD") === formattedDate
+      );
+      setFilteredGoals(filtered); // Cập nhật danh sách mục tiêu hiển thị
+
+      // Gọi fetchTasks để cập nhật danh sách nhiệm vụ
+      fetchTasks(formattedDate);
+    } else {
+      // Nếu không chọn ngày, hiển thị tất cả mục tiêu
+      setFilteredGoals(goalDaily);
+    }
+  };
+
+  useEffect(() => {
+    setFilteredGoals(goalDaily);
+  }, [goalDaily]);
+
+  // Hàm xử lý cập nhật tiến độ
+  const handleUpdateProgress = async (values: any) => {
+    if (!currentTask) return;
+    try {
+      await api.put(`/tasks/${currentTask.id}`, {
+        data: {
+          progess: values.progess,
+        },
+      });
+      message.success("Tiến độ đã được cập nhật.");
+      setIsProgressModalVisible(false);
+      fetchTasks(selectedDate.format("YYYY-MM-DD"));
+    } catch (error) {
+      message.error("Không thể cập nhật tiến độ. Vui lòng thử lại sau.");
+    }
+  };
+
+  // Hàm xử lý chỉnh sửa task
+  const handleEditTask = async (values: any) => {
+    if (!currentTask) return;
+    try {
+      const updatedValues = { ...values };
+
+      // Định dạng lại trường deadline
+      if (updatedValues.deadline) {
+        updatedValues.deadline = updatedValues.deadline.format(
+          "YYYY-MM-DD HH:mm:ss"
+        );
+      }
+
+      // Đảm bảo trường hours là số
+      if (updatedValues.hours) {
+        updatedValues.hours = Number(updatedValues.hours);
+      }
+
+      // Định dạng lại các trường ngày giờ khác nếu cần
+      // ...
+
+      await api.put(`/tasks/${currentTask.id}`, {
+        data: updatedValues,
+      });
+      message.success("Task đã được cập nhật.");
+      setIsEditModalVisible(false);
+      fetchTasks(selectedDate.format("YYYY-MM-DD"));
+    } catch (error) {
+      console.error("Lỗi khi cập nhật task:", error);
+      message.error("Không thể cập nhật task. Vui lòng thử lại sau.");
+    }
+  };
+
+  // Hàm xử lý xóa task
+  const handleDeleteTask = async (taskId: number) => {
+    Modal.confirm({
+      title: "Bạn có chắc chắn muốn xóa task này không?",
+      content: "Thao tác này không thể hoàn tác.",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          await api.delete(`/tasks/${taskId}`);
+          message.success("Task đã được xóa.");
+          window.location.reload();
+        } catch (error) {
+          message.error("Không thể xóa task. Vui lòng thử lại sau.");
+        }
+      },
+    });
+  };
+
+  // hàm thêm task
+  const handleAddTask = async (values: any) => {
+    try {
+      await api.post("/tasks", {
+        data: {
+          ...values,
+          idUser: id, // Gắn user ID cho task
+        },
+      });
+      message.success("Task đã được thêm thành công!");
+      setIsModalVisible(false); // Đóng modal
+      form.resetFields(); // Reset form
+      fetchTasks(selectedDate.format("YYYY-MM-DD")); // Reload task list
+    } catch (error) {
+      message.error("Không thể thêm task. Vui lòng thử lại sau.");
+    }
+  };
+
+  const handleStartTask = async (taskId: number) => {
+    try {
+      // Lưu thời gian hiện tại dưới dạng UTC
+      const utcTime = dayjs().utc().format("YYYY-MM-DD HH:mm:ss");
+
+      await api.put(`/tasks/${taskId}`, {
+        data: {
+          startAt: utcTime,
+        },
+      });
+
+      message.success("Task đã được bắt đầu.");
+      // fetchTasks(selectedDate.format("YYYY-MM-DD"))
+      window.location.reload();
+    } catch (error) {
+      message.error("Không thể bắt đầu task. Vui lòng thử lại sau.");
+    }
+  };
+
+  const handleEditGoal = async (values: any) => {
+    if (!currentGoal) return;
+    try {
+      const updatedGoals = goalDaily.map((goal) =>
+        goal.id === currentGoal.id ? { ...goal, ...values } : goal
+      );
+      await api.put(`/users/${user?.id}`, { goalDaily: updatedGoals });
+      setGoalDaily(updatedGoals);
+      window.location.reload();
+      message.success("Cập nhật mục tiêu thành công!");
+      setIsEditGoalModalVisible(false); // Đóng modal sửa goalDaily
+      goalForm.resetFields(); // Reset form goalDaily
+    } catch (error) {
+      message.error("Không thể cập nhật mục tiêu. Vui lòng thử lại sau.");
+    }
+  };
+
+  // Định nghĩa cột của bảng
+  // const columns = [
+  //   {
+  //     title: (
+  //       <Tooltip title="Mô tả ngắn gọn về nhiệm vụ">
+  //         <span>
+  //           Mô tả{" "}
+  //           <InfoCircleOutlined
+  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+  //           />
+  //         </span>
+  //       </Tooltip>
+  //     ),
+  //     dataIndex: "title",
+  //     key: "title",
+  //     render: (text: string) => text || "Chưa xác định",
+  //   },
+  //   {
+  //     title: (
+  //       <Tooltip title="Tiến độ hoàn thành của nhiệm vụ">
+  //         <span>
+  //           Tiến độ{" "}
+  //           <InfoCircleOutlined
+  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+  //           />
+  //         </span>
+  //       </Tooltip>
+  //     ),
+  //     dataIndex: "progess",
+  //     key: "progess",
+  //     render: (progress: number) =>
+  //       progress !== undefined ? (
+  //         <Progress
+  //           percent={progress || 0}
+  //           size="small"
+  //           status={progress === 100 ? "success" : "active"}
+  //         />
+  //       ) : (
+  //         "Chưa xác định"
+  //       ),
+  //   },
+  //   {
+  //     title: (
+  //       <Tooltip title="Trạng thái hiện tại của nhiệm vụ">
+  //         <span>
+  //           Trạng thái{" "}
+  //           <InfoCircleOutlined
+  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+  //           />
+  //         </span>
+  //       </Tooltip>
+  //     ),
+  //     dataIndex: "Tags",
+  //     key: "Tags",
+  //     render: (tag: string) => {
+  //       let color;
+  //       let translatedTag;
+  //       switch (tag) {
+  //         case "Done":
+  //           color = "green";
+  //           translatedTag = "Hoàn thành";
+  //           break;
+  //         case "None":
+  //           color = "red";
+  //           translatedTag = "Chưa bắt đầu";
+  //           break;
+  //         case "In progress":
+  //           color = "blue";
+  //           translatedTag = "Đang thực hiện";
+  //           break;
+  //         case "Pending":
+  //           color = "orange";
+  //           translatedTag = "Đang chờ xử lý";
+  //           break;
+  //         default:
+  //           color = "default";
+  //           translatedTag = "Chưa xác định";
+  //       }
+  //       return <Tag color={color}>{translatedTag}</Tag>;
+  //     },
+  //   },
+  //   {
+  //     title: (
+  //       <Tooltip title="Thời gian bắt đầu nhiệm vụ">
+  //         <span>
+  //           Thời gian bắt đầu{" "}
+  //           <InfoCircleOutlined
+  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+  //           />
+  //         </span>
+  //       </Tooltip>
+  //     ),
+  //     dataIndex: "startAt",
+  //     key: "startAt",
+  //     render: (text: string) =>
+  //       text ? dayjs(text).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
+  //   },
+  //   {
+  //     title: (
+  //       <Tooltip title="Thời gian hoàn thành nhiệm vụ">
+  //         <span>
+  //           Thời gian hoàn thành{" "}
+  //           <InfoCircleOutlined
+  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+  //           />
+  //         </span>
+  //       </Tooltip>
+  //     ),
+  //     dataIndex: "completion_time",
+  //     key: "completion_time",
+  //     render: (text: string) =>
+  //       text ? dayjs(text).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
+  //   },
+  //   {
+  //     title: (
+  //       <Tooltip title="Nhiệm vụ có lặp lại mỗi ngày không">
+  //         <span>
+  //           Lặp lại mỗi ngày{" "}
+  //           <InfoCircleOutlined
+  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+  //           />
+  //         </span>
+  //       </Tooltip>
+  //     ),
+  //     dataIndex: "repeat",
+  //     key: "repeat",
+  //     render: (repeat: boolean) =>
+  //       repeat !== undefined ? (repeat ? "Có" : "Không") : "Chưa xác định",
+  //   },
+  //   {
+  //     title: (
+  //       <Tooltip title="Hạn chót hoàn thành nhiệm vụ">
+  //         <span>
+  //           Hạn chót{" "}
+  //           <InfoCircleOutlined
+  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+  //           />
+  //         </span>
+  //       </Tooltip>
+  //     ),
+  //     dataIndex: "deadline",
+  //     key: "deadline",
+  //     render: (deadline: string) =>
+  //       deadline ? dayjs(deadline).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
+  //   },
+  //   {
+  //     title: (
+  //       <Tooltip title="Tổng số giờ hoàn thành nhiệm vụ dự kiến">
+  //         <span>
+  //           Giờ dự kiến{" "}
+  //           <InfoCircleOutlined
+  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+  //           />
+  //         </span>
+  //       </Tooltip>
+  //     ),
+  //     dataIndex: "hours",
+  //     key: "hours",
+  //     render: (hours: number) =>
+  //       hours !== undefined ? `${hours} giờ` : "Chưa xác định",
+  //   },
+  //   {
+  //     title: (
+  //       <Tooltip title="Thời gian thực tế hoàn thành nhiệm vụ">
+  //         <span>
+  //           Giờ thực tế{" "}
+  //           <InfoCircleOutlined
+  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+  //           />
+  //         </span>
+  //       </Tooltip>
+  //     ),
+  //     dataIndex: "timeDone",
+  //     key: "timeDone",
+  //     render: (timeDone: number) =>
+  //       timeDone !== null ? `${timeDone}` : "Chưa xác định",
+  //   },
+  //   {
+  //     title: (
+  //       <Tooltip title="Các hành động có thể thực hiện trên nhiệm vụ này">
+  //         <span>
+  //           Hành động{" "}
+  //           <InfoCircleOutlined
+  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+  //           />
+  //         </span>
+  //       </Tooltip>
+  //     ),
+  //     key: "actions",
+  //     render: (_: any, record: any) => (
+  //       <>
+  //         <Button
+  //           type="primary"
+  //           danger
+  //           disabled={record.Tags == "In progress" && record.Tags == "Done"}
+  //           onClick={() => {
+  //             handleStartTask(record.id);
+  //           }}
+  //         >
+  //           Thực hiện
+  //         </Button>
+  //         <Button
+  //           type="link"
+  //           onClick={() => {
+  //             setCurrentTask(record);
+  //             editForm.setFieldsValue({
+  //               ...record,
+  //               deadline: record.deadline ? dayjs(record.deadline) : null,
+  //             });
+  //             setIsEditModalVisible(true);
+  //           }}
+  //         >
+  //           Chỉnh sửa
+  //         </Button>
+  //         <Button
+  //           disabled={record.progess === 100}
+  //           type="link"
+  //           onClick={() => {
+  //             setCurrentTask(record);
+  //             progressForm.setFieldsValue({ progess: record.progess });
+  //             setIsProgressModalVisible(true);
+  //           }}
+  //         >
+  //           Cập nhật tiến độ
+  //         </Button>
+  //         <Button
+  //           type="link"
+  //           danger
+  //           onClick={() => handleDeleteTask(record.id)}
+  //         >
+  //           Xóa
+  //         </Button>
+  //       </>
+  //     ),
+  //   },
+  // ];
 
   const goalDailyColumns = [
     {
@@ -858,7 +1131,7 @@ const Task: React.FC = () => {
       </div>
 
       <div>
-        <Table
+        {/* <Table
           rowKey="id"
           columns={columns}
           dataSource={tasks}
@@ -867,7 +1140,70 @@ const Task: React.FC = () => {
           rowClassName={(record) =>
             record.isImportant ? "important-task" : ""
           }
-        />
+        /> */}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="columns" direction="horizontal" type="COLUMN">
+            {(provided) => (
+              <table
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className="custom-table"
+              >
+                <thead>
+                  <tr>
+                    {columns.map((col, index) => (
+                      <Draggable
+                        key={col.key}
+                        draggableId={col.key}
+                        index={index}
+                      >
+                        {(provided, snapshot) => (
+                          <th
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            ref={provided.innerRef}
+                            className={`draggable-header ${
+                              snapshot.isDragging ? "dragging-header" : ""
+                            }`}
+                          >
+                            <Tooltip title="Kéo để sắp xếp cột">
+                              <span
+                                style={{
+                                  cursor: "grab",
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <DragOutlined
+                                  style={{ marginRight: 8, color: "#888" }}
+                                />
+                                {col.title}
+                              </span>
+                            </Tooltip>
+                          </th>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </tr>
+                </thead>
+                <tbody>
+                  {tasks.map((task, rowIndex) => (
+                    <tr key={rowIndex}>
+                      {columns.map((col, colIndex) => (
+                        <td key={`${rowIndex}-${colIndex}`}>
+                          {col.render
+                            ? col.render(task[col.dataIndex!], task) // Dùng "!" để chắc chắn dataIndex không null
+                            : task[col.dataIndex!] || "N/A"}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Droppable>
+        </DragDropContext>
 
         {/* Modal chỉnh sửa */}
         <Modal
