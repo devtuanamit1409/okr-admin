@@ -177,7 +177,7 @@ const Goal: React.FC = () => {
             setEditingGoal(null);
           }}
         >
-          {["goalWeek", "goalMonth", "goalYear", "goalPrecious"].map((key) => (
+          {["goalWeek", "goalMonth", "goalPrecious", "goalYear"].map((key) => (
             <Tabs.TabPane
               tab={
                 key === "goalWeek"

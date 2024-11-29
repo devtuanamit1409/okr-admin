@@ -11,12 +11,14 @@ import {
   Input,
   Button,
   Checkbox,
+  Tooltip,
 } from "antd";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import api from "../services/api";
 import AppLayout from "../components/AppLayout";
 import { handleLogout } from "../helper/authHelpers";
+import { InfoCircleOutlined } from "@ant-design/icons";
 
 dayjs.extend(customParseFormat);
 interface TaskRecord {
@@ -225,7 +227,16 @@ const ManagentTask: React.FC = () => {
           <Form form={form} layout="vertical" onFinish={handleAddTask}>
             <Form.Item
               name="title"
-              label="Tiêu đề"
+              label={
+                <span>
+                  Tiêu đề{" "}
+                  <Tooltip title="Nhập tiêu đề của task!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[
                 { required: true, message: "Vui lòng nhập tiêu đề task" },
               ]}
@@ -234,7 +245,16 @@ const ManagentTask: React.FC = () => {
             </Form.Item>
             <Form.Item
               name="description"
-              label="Mô tả"
+              label={
+                <span>
+                  Mô tả{" "}
+                  <Tooltip title="Nhập mô tả chi tiết về nhiệm vụ!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[{ required: true, message: "Vui lòng nhập mô tả task" }]}
             >
               <Input.TextArea />
@@ -242,20 +262,47 @@ const ManagentTask: React.FC = () => {
             <Form.Item
               name="repeat"
               valuePropName="checked"
-              label="Lặp lại mỗi ngày"
+              label={
+                <span>
+                  Lặp lại mỗi ngày{" "}
+                  <Tooltip title="Bật nếu nhiệm vụ lặp lại hàng ngày!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
             >
               <Checkbox />
             </Form.Item>
             <Form.Item
               name="isImportant"
               valuePropName="checked"
-              label="Quan trọng"
+              label={
+                <span>
+                  Quan trọng{" "}
+                  <Tooltip title="Đánh dấu nhiệm vụ là quan trọng!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
             >
               <Checkbox />
             </Form.Item>
             <Form.Item
               name="deadline"
-              label="Hạn chót"
+              label={
+                <span>
+                  Hạn chót{" "}
+                  <Tooltip title="Chọn hạn chót hoàn thành nhiệm vụ!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[{ message: "Vui lòng chọn thời hạn" }]}
             >
               <DatePicker
@@ -264,10 +311,18 @@ const ManagentTask: React.FC = () => {
                 style={{ width: "100%" }}
               />
             </Form.Item>
-            {/* Trường giờ hoàn thành */}
             <Form.Item
               name="hours"
-              label="Giờ hoàn thành"
+              label={
+                <span>
+                  Giờ hoàn thành{" "}
+                  <Tooltip title="Nhập thời gian dự kiến hoàn thành nhiệm vụ (tính bằng phút)!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[{ message: "Vui lòng nhập giờ hoàn thành" }]}
             >
               <Input type="number" min={0} />

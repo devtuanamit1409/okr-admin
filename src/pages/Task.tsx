@@ -697,7 +697,16 @@ const Task: React.FC = () => {
           <Form form={form} layout="vertical" onFinish={handleAddGoal}>
             <Form.Item
               name="name"
-              label="Tên mục tiêu"
+              label={
+                <span>
+                  Tên mục tiêu{" "}
+                  <Tooltip title="Nhập tên của mục tiêu ngày!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[
                 { required: true, message: "Vui lòng nhập tên mục tiêu" },
               ]}
@@ -706,14 +715,32 @@ const Task: React.FC = () => {
             </Form.Item>
             <Form.Item
               name="description"
-              label="Mô tả"
+              label={
+                <span>
+                  Mô tả{" "}
+                  <Tooltip title="Nhập mô tả chi tiết của mục tiêu ngày!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[{ required: true, message: "Vui lòng nhập mô tả" }]}
             >
               <Input.TextArea />
             </Form.Item>
             <Form.Item
               name="quantity"
-              label="Số lượng"
+              label={
+                <span>
+                  Số lượng{" "}
+                  <Tooltip title="Nhập số lượng dự kiến để đạt được mục tiêu này!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[{ required: true, message: "Vui lòng nhập số lượng" }]}
             >
               <Input type="number" min={1} />
@@ -734,7 +761,16 @@ const Task: React.FC = () => {
           <Form form={goalForm} layout="vertical" onFinish={handleEditGoal}>
             <Form.Item
               name="name"
-              label="Tên mục tiêu"
+              label={
+                <span>
+                  Tên mục tiêu{" "}
+                  <Tooltip title="Nhập tên của mục tiêu ngày!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[
                 { required: true, message: "Vui lòng nhập tên mục tiêu" },
               ]}
@@ -743,20 +779,50 @@ const Task: React.FC = () => {
             </Form.Item>
             <Form.Item
               name="description"
-              label="Mô tả"
+              label={
+                <span>
+                  Mô tả{" "}
+                  <Tooltip title="Nhập mô tả chi tiết của mục tiêu ngày!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[{ required: true, message: "Vui lòng nhập mô tả" }]}
             >
               <Input.TextArea />
             </Form.Item>
             <Form.Item
               name="quantity"
-              label="Số lượng"
+              label={
+                <span>
+                  Số lượng{" "}
+                  <Tooltip title="Nhập số lượng dự kiến để đạt được mục tiêu này!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[{ required: true, message: "Vui lòng nhập số lượng" }]}
             >
               <Input type="number" min={1} />
             </Form.Item>
-            <Form.Item name="progess" label="Tiến độ">
-              <Input type="number" min={1} />
+            <Form.Item
+              name="progess"
+              label={
+                <span>
+                  Tiến độ{" "}
+                  <Tooltip title="Nhập tiến độ hoàn thành của mục tiêu này (tính theo phần trăm)!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
+            >
+              <Input type="number" min={0} max={100} />
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit" block>
@@ -812,7 +878,16 @@ const Task: React.FC = () => {
           <Form form={editForm} layout="vertical" onFinish={handleEditTask}>
             <Form.Item
               name="title"
-              label="Tiêu đề"
+              label={
+                <span>
+                  Tiêu đề{" "}
+                  <Tooltip title="Nhập tiêu đề của task!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[
                 { required: true, message: "Vui lòng nhập tiêu đề task" },
               ]}
@@ -821,30 +896,84 @@ const Task: React.FC = () => {
             </Form.Item>
             <Form.Item
               name="description"
-              label="Mô tả"
+              label={
+                <span>
+                  Mô tả{" "}
+                  <Tooltip title="Nhập mô tả chi tiết về nhiệm vụ!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[{ required: true, message: "Vui lòng nhập mô tả task" }]}
             >
               <Input.TextArea />
             </Form.Item>
-            <Form.Item name="repeat" valuePropName="checked" label="Lặp lại">
+            <Form.Item
+              name="repeat"
+              valuePropName="checked"
+              label={
+                <span>
+                  Lặp lại{" "}
+                  <Tooltip title="Bật nếu nhiệm vụ lặp lại hàng ngày!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
+            >
               <Checkbox />
             </Form.Item>
             <Form.Item
               name="isImportant"
               valuePropName="checked"
-              label="Quan trọng"
+              label={
+                <span>
+                  Quan trọng{" "}
+                  <Tooltip title="Đánh dấu nhiệm vụ là quan trọng!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
             >
               <Checkbox />
             </Form.Item>
-            <Form.Item name="deadline" label="Hạn chót">
+            <Form.Item
+              name="deadline"
+              label={
+                <span>
+                  Hạn chót{" "}
+                  <Tooltip title="Chọn hạn chót hoàn thành nhiệm vụ!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
+            >
               <DatePicker
                 showTime
                 format="YYYY-MM-DD HH:mm"
                 style={{ width: "100%" }}
               />
             </Form.Item>
-            {/* Trường giờ hoàn thành */}
-            <Form.Item name="hours" label="Giờ hoàn thành">
+            <Form.Item
+              name="hours"
+              label={
+                <span>
+                  Giờ hoàn thành{" "}
+                  <Tooltip title="Nhập thời gian dự kiến hoàn thành nhiệm vụ (tính bằng phút)!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
+            >
               <Input type="number" min={0} />
             </Form.Item>
             <Form.Item>
@@ -854,6 +983,7 @@ const Task: React.FC = () => {
             </Form.Item>
           </Form>
         </Modal>
+
         {/* Modal cập nhật tiến độ */}
         <Modal
           title="Cập nhật tiến độ"
@@ -868,7 +998,16 @@ const Task: React.FC = () => {
           >
             <Form.Item
               name="progess"
-              label="Tiến độ (%) (từ 0 đến 100)"
+              label={
+                <span>
+                  Tiến độ (%){" "}
+                  <Tooltip title="Nhập tiến độ hoàn thành của task (từ 0 đến 100)!">
+                    <InfoCircleOutlined
+                      style={{ color: "#1890ff", marginLeft: 4 }}
+                    />
+                  </Tooltip>
+                </span>
+              }
               rules={[{ required: true, message: "Vui lòng nhập tiến độ" }]}
             >
               <Input type="number" max={100} min={0} />
@@ -880,6 +1019,7 @@ const Task: React.FC = () => {
             </Form.Item>
           </Form>
         </Modal>
+
         <Modal
           title="Thêm Task"
           visible={isModalVisible}
