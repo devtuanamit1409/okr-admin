@@ -1037,10 +1037,6 @@ const Task: React.FC = () => {
                                   gap: "8px",
                                 }}
                               >
-                                {col.render
-                                  ? col.render(task[col.dataIndex!], task)
-                                  : task[col.dataIndex!] || "N/A"}
-                                {/* Nút mở rộng/thu gọn */}
                                 <Button
                                   type="link"
                                   icon={
@@ -1060,6 +1056,10 @@ const Task: React.FC = () => {
                                     handleExpandRow(String(task.id))
                                   }
                                 />
+                                {col.render
+                                  ? col.render(task[col.dataIndex!], task)
+                                  : task[col.dataIndex!] || "N/A"}
+                                {/* Nút mở rộng/thu gọn */}
                               </div>
                             ) : col.render ? (
                               col.render(task[col.dataIndex!], task)
