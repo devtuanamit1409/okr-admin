@@ -826,21 +826,7 @@ const Task: React.FC = () => {
   const goalDailyColumns = [
     {
       title: (
-        <Tooltip title="Mô tả ngắn về mục tiêu này">
-          <span>
-            Mô tả{" "}
-            <InfoCircleOutlined
-              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-            />
-          </span>
-        </Tooltip>
-      ),
-      dataIndex: "description",
-      key: "description",
-    },
-    {
-      title: (
-        <Tooltip title="Tên của mục tiêu mà bạn muốn theo dõi">
+        <Tooltip title="Mục tiêu cần theo dõi">
           <span>
             Tên mục tiêu{" "}
             <InfoCircleOutlined
@@ -854,9 +840,24 @@ const Task: React.FC = () => {
     },
     {
       title: (
-        <Tooltip title="Số lượng cần đạt được cho mục tiêu này">
+        <Tooltip title="Mô tả về mục tiêu">
           <span>
-            Mục tiêu{" "}
+            Mô tả{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ),
+      dataIndex: "description",
+      key: "description",
+    },
+
+    {
+      title: (
+        <Tooltip title="Mục tiêu để đo lường">
+          <span>
+            Đo lường ( đơn vị đo lường )
             <InfoCircleOutlined
               style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
             />
@@ -874,9 +875,9 @@ const Task: React.FC = () => {
     },
     {
       title: (
-        <Tooltip title="Tiến độ hoàn thành mục tiêu (tính theo %)">
+        <Tooltip title="Tiến độ hoàn thành">
           <span>
-            Đơn vị (%){" "}
+            Tiến độ (%)
             <InfoCircleOutlined
               style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
             />
@@ -895,7 +896,7 @@ const Task: React.FC = () => {
     },
     {
       title: (
-        <Tooltip title="Các hành động có thể thực hiện trên mục tiêu này">
+        <Tooltip title="Thao tác có thể thực hiện">
           <span>
             Hành động{" "}
             <InfoCircleOutlined
@@ -963,7 +964,7 @@ const Task: React.FC = () => {
             textAlign: "center",
           }}
         >
-          🌟 Danh sách Mục Tiêu Ngày
+          🌟 Mục tiêu ngày
         </h3>{" "}
         <Button
           type="primary"
