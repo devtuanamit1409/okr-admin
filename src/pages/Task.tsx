@@ -321,8 +321,8 @@ const Task: React.FC = () => {
           </span>
         </Tooltip>
       ),
-      dataIndex: "description",
-      key: "description",
+      dataIndex: "title",
+      key: "title",
       render: (text: string) => text || "Chưa xác định",
     },
     {
