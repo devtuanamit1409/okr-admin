@@ -63,6 +63,7 @@ dayjs.extend(utc); // Kích hoạt plugin utc
 
 const Task: React.FC = () => {
   const { user } = useFetchUser(); // Lấy thông tin người dùng hiện tại
+
   const id = user?.id; // Lấy ID user từ thông tin user
   const [tasks, setTasks] = useState<Task[]>([]); // State lưu trữ danh sách task
   const [loading, setLoading] = useState(false); // Loading state
@@ -82,10 +83,15 @@ const Task: React.FC = () => {
   const [goalForm] = Form.useForm();
   const [filteredGoals, setFilteredGoals] = useState<any[]>(goalDaily);
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
+  const [showTooltips, setShowTooltips] = useState<boolean>(false);
+  const [columns, setColumns] = useState<Column[]>([]);
+  useEffect(() => {
+    setShowTooltips(user?.isInstruct ?? false); // Kiểm tra giá trị `isInstruct`
+  }, [user?.isInstruct]);
 
-  const [columns, setColumns] = useState<Column[]>([
+  const generateColumns = (showTooltips: boolean): Column[] => [
     {
-      title: (
+      title: showTooltips ? (
         <Tooltip title="Mô tả ngắn gọn về nhiệm vụ">
           <span>
             Mô tả{" "}
@@ -94,13 +100,15 @@ const Task: React.FC = () => {
             />
           </span>
         </Tooltip>
+      ) : (
+        <span>Mô tả</span>
       ),
       dataIndex: "title",
       key: "title",
       render: (text: string) => text || "Chưa xác định",
     },
     {
-      title: (
+      title: showTooltips ? (
         <Tooltip title="Tiến độ hoàn thành của nhiệm vụ">
           <span>
             Tiến độ{" "}
@@ -109,6 +117,8 @@ const Task: React.FC = () => {
             />
           </span>
         </Tooltip>
+      ) : (
+        <span>Tiến độ</span>
       ),
       dataIndex: "progess",
       key: "progess",
@@ -124,7 +134,7 @@ const Task: React.FC = () => {
         ),
     },
     {
-      title: (
+      title: showTooltips ? (
         <Tooltip title="Trạng thái hiện tại của nhiệm vụ">
           <span>
             Trạng thái{" "}
@@ -133,6 +143,8 @@ const Task: React.FC = () => {
             />
           </span>
         </Tooltip>
+      ) : (
+        <span>Trạng thái</span>
       ),
       dataIndex: "Tags",
       key: "Tags",
@@ -164,7 +176,7 @@ const Task: React.FC = () => {
       },
     },
     {
-      title: (
+      title: showTooltips ? (
         <Tooltip title="Thời gian bắt đầu nhiệm vụ">
           <span>
             Thời gian bắt đầu{" "}
@@ -173,6 +185,8 @@ const Task: React.FC = () => {
             />
           </span>
         </Tooltip>
+      ) : (
+        <span>Thời gian bắt đầu</span>
       ),
       dataIndex: "startAt",
       key: "startAt",
@@ -180,7 +194,7 @@ const Task: React.FC = () => {
         text ? dayjs(text).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
     },
     {
-      title: (
+      title: showTooltips ? (
         <Tooltip title="Thời gian hoàn thành nhiệm vụ">
           <span>
             Thời gian hoàn thành{" "}
@@ -189,6 +203,8 @@ const Task: React.FC = () => {
             />
           </span>
         </Tooltip>
+      ) : (
+        <span>Thời gian hoàn thành</span>
       ),
       dataIndex: "completion_time",
       key: "completion_time",
@@ -196,7 +212,7 @@ const Task: React.FC = () => {
         text ? dayjs(text).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
     },
     {
-      title: (
+      title: showTooltips ? (
         <Tooltip title="Nhiệm vụ có lặp lại mỗi ngày không">
           <span>
             Lặp lại mỗi ngày{" "}
@@ -205,6 +221,8 @@ const Task: React.FC = () => {
             />
           </span>
         </Tooltip>
+      ) : (
+        <span>Lặp lại mỗi ngày</span>
       ),
       dataIndex: "repeat",
       key: "repeat",
@@ -212,7 +230,7 @@ const Task: React.FC = () => {
         repeat !== undefined ? (repeat ? "Có" : "Không") : "Chưa xác định",
     },
     {
-      title: (
+      title: showTooltips ? (
         <Tooltip title="Hạn chót hoàn thành nhiệm vụ">
           <span>
             Hạn chót{" "}
@@ -221,6 +239,8 @@ const Task: React.FC = () => {
             />
           </span>
         </Tooltip>
+      ) : (
+        <span>Hạn chót</span>
       ),
       dataIndex: "deadline",
       key: "deadline",
@@ -228,7 +248,7 @@ const Task: React.FC = () => {
         deadline ? dayjs(deadline).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
     },
     {
-      title: (
+      title: showTooltips ? (
         <Tooltip title="Tổng số giờ hoàn thành nhiệm vụ dự kiến">
           <span>
             Giờ dự kiến{" "}
@@ -237,6 +257,8 @@ const Task: React.FC = () => {
             />
           </span>
         </Tooltip>
+      ) : (
+        <span>Giờ dự kiến</span>
       ),
       dataIndex: "hours",
       key: "hours",
@@ -244,7 +266,7 @@ const Task: React.FC = () => {
         hours !== null ? `${hours} giờ` : "Chưa xác định",
     },
     {
-      title: (
+      title: showTooltips ? (
         <Tooltip title="Thời gian thực tế hoàn thành nhiệm vụ">
           <span>
             Giờ thực tế{" "}
@@ -253,6 +275,8 @@ const Task: React.FC = () => {
             />
           </span>
         </Tooltip>
+      ) : (
+        <span>Giờ thực tế</span>
       ),
       dataIndex: "timeDone",
       key: "timeDone",
@@ -260,7 +284,7 @@ const Task: React.FC = () => {
         timeDone !== null ? `${timeDone}` : "Chưa xác định",
     },
     {
-      title: (
+      title: showTooltips ? (
         <Tooltip title="Các hành động có thể thực hiện trên nhiệm vụ này">
           <span>
             Hành động{" "}
@@ -269,6 +293,8 @@ const Task: React.FC = () => {
             />
           </span>
         </Tooltip>
+      ) : (
+        <span>Hành động</span>
       ),
       key: "actions",
       render: (_: any, record: any) => (
@@ -317,7 +343,124 @@ const Task: React.FC = () => {
         </>
       ),
     },
-  ]);
+  ];
+
+  const generateGoalDailyColumns = (showTooltips: boolean): Column[] => [
+    {
+      title: showTooltips ? (
+        <Tooltip title="Mục tiêu cần theo dõi">
+          <span>
+            Tên mục tiêu{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ) : (
+        <span>Tên mục tiêu</span>
+      ),
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: showTooltips ? (
+        <Tooltip title="Mô tả về mục tiêu">
+          <span>
+            Mô tả{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ) : (
+        <span>Mô tả</span>
+      ),
+      dataIndex: "description",
+      key: "description",
+    },
+    {
+      title: showTooltips ? (
+        <Tooltip title="Mục tiêu để đo lường">
+          <span>
+            Đo lường ( đơn vị đo lường ){" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ) : (
+        <span>Đo lường ( đơn vị đo lường )</span>
+      ),
+      dataIndex: "quantity",
+      key: "quantity",
+      render: (quantity: number) => {
+        const formattedQuantity = new Intl.NumberFormat("en-US").format(
+          quantity
+        );
+        return <span>{formattedQuantity}</span>;
+      },
+    },
+    {
+      title: showTooltips ? (
+        <Tooltip title="Tiến độ hoàn thành">
+          <span>
+            Tiến độ (%){" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ) : (
+        <span>Tiến độ (%)</span>
+      ),
+      dataIndex: "progess",
+      key: "progess",
+      render: (progess: number) => (
+        <Progress
+          percent={progess || 0}
+          size="small"
+          status={progess === 100 ? "success" : "active"}
+        />
+      ),
+    },
+    {
+      title: showTooltips ? (
+        <Tooltip title="Thao tác có thể thực hiện">
+          <span>
+            Hành động{" "}
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ) : (
+        <span>Hành động</span>
+      ),
+      key: "actions",
+      render: (_: any, record: any) => (
+        <Space>
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => handleEditGoalClick(record)}
+          >
+            Sửa
+          </Button>
+          <Button
+            icon={<DeleteOutlined />}
+            danger
+            onClick={() => handleDeleteGoal(record.id)}
+          >
+            Xóa
+          </Button>
+        </Space>
+      ),
+    },
+  ];
+
+  useEffect(() => {
+    setColumns(generateColumns(showTooltips));
+  }, [showTooltips]);
+
   const handleDragEnd = (result: DropResult): void => {
     const { source, destination } = result;
 
@@ -586,345 +729,7 @@ const Task: React.FC = () => {
     }
   };
 
-  // Định nghĩa cột của bảng
-  // const columns = [
-  //   {
-  //     title: (
-  //       <Tooltip title="Mô tả ngắn gọn về nhiệm vụ">
-  //         <span>
-  //           Mô tả{" "}
-  //           <InfoCircleOutlined
-  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-  //           />
-  //         </span>
-  //       </Tooltip>
-  //     ),
-  //     dataIndex: "title",
-  //     key: "title",
-  //     render: (text: string) => text || "Chưa xác định",
-  //   },
-  //   {
-  //     title: (
-  //       <Tooltip title="Tiến độ hoàn thành của nhiệm vụ">
-  //         <span>
-  //           Tiến độ{" "}
-  //           <InfoCircleOutlined
-  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-  //           />
-  //         </span>
-  //       </Tooltip>
-  //     ),
-  //     dataIndex: "progess",
-  //     key: "progess",
-  //     render: (progress: number) =>
-  //       progress !== undefined ? (
-  //         <Progress
-  //           percent={progress || 0}
-  //           size="small"
-  //           status={progress === 100 ? "success" : "active"}
-  //         />
-  //       ) : (
-  //         "Chưa xác định"
-  //       ),
-  //   },
-  //   {
-  //     title: (
-  //       <Tooltip title="Trạng thái hiện tại của nhiệm vụ">
-  //         <span>
-  //           Trạng thái{" "}
-  //           <InfoCircleOutlined
-  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-  //           />
-  //         </span>
-  //       </Tooltip>
-  //     ),
-  //     dataIndex: "Tags",
-  //     key: "Tags",
-  //     render: (tag: string) => {
-  //       let color;
-  //       let translatedTag;
-  //       switch (tag) {
-  //         case "Done":
-  //           color = "green";
-  //           translatedTag = "Hoàn thành";
-  //           break;
-  //         case "None":
-  //           color = "red";
-  //           translatedTag = "Chưa bắt đầu";
-  //           break;
-  //         case "In progress":
-  //           color = "blue";
-  //           translatedTag = "Đang thực hiện";
-  //           break;
-  //         case "Pending":
-  //           color = "orange";
-  //           translatedTag = "Đang chờ xử lý";
-  //           break;
-  //         default:
-  //           color = "default";
-  //           translatedTag = "Chưa xác định";
-  //       }
-  //       return <Tag color={color}>{translatedTag}</Tag>;
-  //     },
-  //   },
-  //   {
-  //     title: (
-  //       <Tooltip title="Thời gian bắt đầu nhiệm vụ">
-  //         <span>
-  //           Thời gian bắt đầu{" "}
-  //           <InfoCircleOutlined
-  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-  //           />
-  //         </span>
-  //       </Tooltip>
-  //     ),
-  //     dataIndex: "startAt",
-  //     key: "startAt",
-  //     render: (text: string) =>
-  //       text ? dayjs(text).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
-  //   },
-  //   {
-  //     title: (
-  //       <Tooltip title="Thời gian hoàn thành nhiệm vụ">
-  //         <span>
-  //           Thời gian hoàn thành{" "}
-  //           <InfoCircleOutlined
-  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-  //           />
-  //         </span>
-  //       </Tooltip>
-  //     ),
-  //     dataIndex: "completion_time",
-  //     key: "completion_time",
-  //     render: (text: string) =>
-  //       text ? dayjs(text).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
-  //   },
-  //   {
-  //     title: (
-  //       <Tooltip title="Nhiệm vụ có lặp lại mỗi ngày không">
-  //         <span>
-  //           Lặp lại mỗi ngày{" "}
-  //           <InfoCircleOutlined
-  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-  //           />
-  //         </span>
-  //       </Tooltip>
-  //     ),
-  //     dataIndex: "repeat",
-  //     key: "repeat",
-  //     render: (repeat: boolean) =>
-  //       repeat !== undefined ? (repeat ? "Có" : "Không") : "Chưa xác định",
-  //   },
-  //   {
-  //     title: (
-  //       <Tooltip title="Hạn chót hoàn thành nhiệm vụ">
-  //         <span>
-  //           Hạn chót{" "}
-  //           <InfoCircleOutlined
-  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-  //           />
-  //         </span>
-  //       </Tooltip>
-  //     ),
-  //     dataIndex: "deadline",
-  //     key: "deadline",
-  //     render: (deadline: string) =>
-  //       deadline ? dayjs(deadline).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
-  //   },
-  //   {
-  //     title: (
-  //       <Tooltip title="Tổng số giờ hoàn thành nhiệm vụ dự kiến">
-  //         <span>
-  //           Giờ dự kiến{" "}
-  //           <InfoCircleOutlined
-  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-  //           />
-  //         </span>
-  //       </Tooltip>
-  //     ),
-  //     dataIndex: "hours",
-  //     key: "hours",
-  //     render: (hours: number) =>
-  //       hours !== undefined ? `${hours} giờ` : "Chưa xác định",
-  //   },
-  //   {
-  //     title: (
-  //       <Tooltip title="Thời gian thực tế hoàn thành nhiệm vụ">
-  //         <span>
-  //           Giờ thực tế{" "}
-  //           <InfoCircleOutlined
-  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-  //           />
-  //         </span>
-  //       </Tooltip>
-  //     ),
-  //     dataIndex: "timeDone",
-  //     key: "timeDone",
-  //     render: (timeDone: number) =>
-  //       timeDone !== null ? `${timeDone}` : "Chưa xác định",
-  //   },
-  //   {
-  //     title: (
-  //       <Tooltip title="Các hành động có thể thực hiện trên nhiệm vụ này">
-  //         <span>
-  //           Hành động{" "}
-  //           <InfoCircleOutlined
-  //             style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-  //           />
-  //         </span>
-  //       </Tooltip>
-  //     ),
-  //     key: "actions",
-  //     render: (_: any, record: any) => (
-  //       <>
-  //         <Button
-  //           type="primary"
-  //           danger
-  //           disabled={record.Tags == "In progress" && record.Tags == "Done"}
-  //           onClick={() => {
-  //             handleStartTask(record.id);
-  //           }}
-  //         >
-  //           Thực hiện
-  //         </Button>
-  //         <Button
-  //           type="link"
-  //           onClick={() => {
-  //             setCurrentTask(record);
-  //             editForm.setFieldsValue({
-  //               ...record,
-  //               deadline: record.deadline ? dayjs(record.deadline) : null,
-  //             });
-  //             setIsEditModalVisible(true);
-  //           }}
-  //         >
-  //           Chỉnh sửa
-  //         </Button>
-  //         <Button
-  //           disabled={record.progess === 100}
-  //           type="link"
-  //           onClick={() => {
-  //             setCurrentTask(record);
-  //             progressForm.setFieldsValue({ progess: record.progess });
-  //             setIsProgressModalVisible(true);
-  //           }}
-  //         >
-  //           Cập nhật tiến độ
-  //         </Button>
-  //         <Button
-  //           type="link"
-  //           danger
-  //           onClick={() => handleDeleteTask(record.id)}
-  //         >
-  //           Xóa
-  //         </Button>
-  //       </>
-  //     ),
-  //   },
-  // ];
-
-  const goalDailyColumns = [
-    {
-      title: (
-        <Tooltip title="Mục tiêu cần theo dõi">
-          <span>
-            Tên mục tiêu{" "}
-            <InfoCircleOutlined
-              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-            />
-          </span>
-        </Tooltip>
-      ),
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: (
-        <Tooltip title="Mô tả về mục tiêu">
-          <span>
-            Mô tả{" "}
-            <InfoCircleOutlined
-              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-            />
-          </span>
-        </Tooltip>
-      ),
-      dataIndex: "description",
-      key: "description",
-    },
-
-    {
-      title: (
-        <Tooltip title="Mục tiêu để đo lường">
-          <span>
-            Đo lường ( đơn vị đo lường )
-            <InfoCircleOutlined
-              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-            />
-          </span>
-        </Tooltip>
-      ),
-      dataIndex: "quantity",
-      key: "quantity",
-      render: (quantity: number) => {
-        const formattedQuantity = new Intl.NumberFormat("en-US").format(
-          quantity
-        );
-        return <span>{formattedQuantity}</span>;
-      },
-    },
-    {
-      title: (
-        <Tooltip title="Tiến độ hoàn thành">
-          <span>
-            Tiến độ (%)
-            <InfoCircleOutlined
-              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-            />
-          </span>
-        </Tooltip>
-      ),
-      dataIndex: "progess",
-      key: "progess",
-      render: (progess: number) => (
-        <Progress
-          percent={progess || 0}
-          size="small"
-          status={progess === 100 ? "success" : "active"}
-        />
-      ),
-    },
-    {
-      title: (
-        <Tooltip title="Thao tác có thể thực hiện">
-          <span>
-            Hành động{" "}
-            <InfoCircleOutlined
-              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
-            />
-          </span>
-        </Tooltip>
-      ),
-      key: "actions",
-      render: (_: any, record: any) => (
-        <Space>
-          <Button
-            icon={<EditOutlined />}
-            onClick={() => handleEditGoalClick(record)}
-          >
-            Sửa
-          </Button>
-          <Button
-            icon={<DeleteOutlined />}
-            danger
-            onClick={() => handleDeleteGoal(record.id)}
-          >
-            Xóa
-          </Button>
-        </Space>
-      ),
-    },
-  ];
+  const goalDailyColumns = generateGoalDailyColumns(showTooltips);
 
   const handleExpandRow = (rowKey: string) => {
     if (expandedRowKeys.includes(rowKey)) {
@@ -974,6 +779,7 @@ const Task: React.FC = () => {
         >
           Thêm Mục Tiêu
         </Button>
+        {/* modal thêm mục tiêu  */}
         <Modal
           title="Thêm Mục Tiêu Ngày"
           visible={isAddModalVisible}
@@ -984,14 +790,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="name"
               label={
-                <span>
-                  Tên mục tiêu{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập tên của mục tiêu ngày!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Tên mục tiêu{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Tên mục tiêu</span>
+                )
               }
               rules={[
                 { required: true, message: "Vui lòng nhập tên mục tiêu" },
@@ -1002,14 +812,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="description"
               label={
-                <span>
-                  Mô tả{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập mô tả chi tiết của mục tiêu ngày!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Mô tả{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Mô tả</span>
+                )
               }
               rules={[{ required: true, message: "Vui lòng nhập mô tả" }]}
             >
@@ -1018,14 +832,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="quantity"
               label={
-                <span>
-                  Số lượng{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập số lượng dự kiến để đạt được mục tiêu này!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Số lượng{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Số lượng</span>
+                )
               }
               rules={[{ required: true, message: "Vui lòng nhập số lượng" }]}
             >
@@ -1038,6 +856,7 @@ const Task: React.FC = () => {
             </Form.Item>
           </Form>
         </Modal>
+        {/* modal sửa mục tiêu */}
         <Modal
           title="Chỉnh sửa Mục Tiêu Ngày"
           visible={isEditGoalModalVisible}
@@ -1048,14 +867,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="name"
               label={
-                <span>
-                  Tên mục tiêu{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập tên của mục tiêu ngày!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Tên mục tiêu{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Tên mục tiêu</span>
+                )
               }
               rules={[
                 { required: true, message: "Vui lòng nhập tên mục tiêu" },
@@ -1066,14 +889,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="description"
               label={
-                <span>
-                  Mô tả{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập mô tả chi tiết của mục tiêu ngày!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Mô tả{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Mô tả</span>
+                )
               }
               rules={[{ required: true, message: "Vui lòng nhập mô tả" }]}
             >
@@ -1082,14 +909,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="quantity"
               label={
-                <span>
-                  Số lượng{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập số lượng dự kiến để đạt được mục tiêu này!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Số lượng{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Số lượng</span>
+                )
               }
               rules={[{ required: true, message: "Vui lòng nhập số lượng" }]}
             >
@@ -1098,14 +929,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="progess"
               label={
-                <span>
-                  Tiến độ{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập tiến độ hoàn thành của mục tiêu này (tính theo phần trăm)!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Tiến độ{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Tiến độ</span>
+                )
               }
             >
               <Input type="number" min={0} max={100} />
@@ -1117,6 +952,7 @@ const Task: React.FC = () => {
             </Form.Item>
           </Form>
         </Modal>
+        {/* bảng mục tiêu */}
         <Table
           rowKey="id"
           columns={goalDailyColumns}
@@ -1168,20 +1004,18 @@ const Task: React.FC = () => {
                               snapshot.isDragging ? "dragging-header" : ""
                             }`}
                           >
-                            <Tooltip title="Kéo để sắp xếp cột">
-                              <span
-                                style={{
-                                  cursor: "grab",
-                                  display: "flex",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <DragOutlined
-                                  style={{ marginRight: 8, color: "#888" }}
-                                />
-                                {col.title}
-                              </span>
-                            </Tooltip>
+                            <span
+                              style={{
+                                cursor: "grab",
+                                display: "flex",
+                                alignItems: "center",
+                              }}
+                            >
+                              <DragOutlined
+                                style={{ marginRight: 8, color: "#888" }}
+                              />
+                              {col.title}
+                            </span>
                           </th>
                         )}
                       </Draggable>
@@ -1274,14 +1108,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="title"
               label={
-                <span>
-                  Tiêu đề{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập tiêu đề của task!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Tiêu đề{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Tiêu đề</span>
+                )
               }
               rules={[
                 { required: true, message: "Vui lòng nhập tiêu đề task" },
@@ -1292,14 +1130,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="description"
               label={
-                <span>
-                  Mô tả{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập mô tả chi tiết về nhiệm vụ!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Mô tả{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Mô tả</span>
+                )
               }
               rules={[{ required: true, message: "Vui lòng nhập mô tả task" }]}
             >
@@ -1309,14 +1151,18 @@ const Task: React.FC = () => {
               name="repeat"
               valuePropName="checked"
               label={
-                <span>
-                  Lặp lại{" "}
+                showTooltips ? (
                   <Tooltip title="Bật nếu nhiệm vụ lặp lại hàng ngày!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Lặp lại{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Lặp lại</span>
+                )
               }
             >
               <Checkbox />
@@ -1325,14 +1171,18 @@ const Task: React.FC = () => {
               name="isImportant"
               valuePropName="checked"
               label={
-                <span>
-                  Quan trọng{" "}
+                showTooltips ? (
                   <Tooltip title="Đánh dấu nhiệm vụ là quan trọng!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Quan trọng{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Quan trọng</span>
+                )
               }
             >
               <Checkbox />
@@ -1340,14 +1190,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="deadline"
               label={
-                <span>
-                  Hạn chót{" "}
+                showTooltips ? (
                   <Tooltip title="Chọn hạn chót hoàn thành nhiệm vụ!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Hạn chót{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Hạn chót</span>
+                )
               }
             >
               <DatePicker
@@ -1359,30 +1213,37 @@ const Task: React.FC = () => {
             <Form.Item
               name="hours"
               label={
-                <span>
-                  Giờ hoàn thành{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập thời gian dự kiến hoàn thành nhiệm vụ (tính bằng phút)!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Giờ hoàn thành{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Giờ hoàn thành</span>
+                )
               }
             >
               <Input type="number" />
             </Form.Item>
-            {/* Trường cập nhật Tags */}
             <Form.Item
               name="Tags"
               label={
-                <span>
-                  Trạng thái{" "}
+                showTooltips ? (
                   <Tooltip title="Cập nhật trạng thái của nhiệm vụ!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Trạng thái{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Trạng thái</span>
+                )
               }
             >
               <Select placeholder="Chọn trạng thái">
@@ -1417,14 +1278,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="progess"
               label={
-                <span>
-                  Tiến độ (%){" "}
+                showTooltips ? (
                   <Tooltip title="Nhập tiến độ hoàn thành của task (từ 0 đến 100)!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Tiến độ (%){" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Tiến độ (%)</span>
+                )
               }
               rules={[{ required: true, message: "Vui lòng nhập tiến độ" }]}
             >
@@ -1448,14 +1313,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="title"
               label={
-                <span>
-                  Tiêu đề{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập tiêu đề của task!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Tiêu đề{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Tiêu đề</span>
+                )
               }
               rules={[
                 { required: true, message: "Vui lòng nhập tiêu đề task" },
@@ -1466,14 +1335,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="description"
               label={
-                <span>
-                  Mô tả{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập mô tả chi tiết về nhiệm vụ!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Mô tả{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Mô tả</span>
+                )
               }
               rules={[{ required: true, message: "Vui lòng nhập mô tả task" }]}
             >
@@ -1483,14 +1356,18 @@ const Task: React.FC = () => {
               name="repeat"
               valuePropName="checked"
               label={
-                <span>
-                  Lặp lại mỗi ngày{" "}
+                showTooltips ? (
                   <Tooltip title="Bật nếu nhiệm vụ lặp lại hàng ngày!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Lặp lại mỗi ngày{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Lặp lại mỗi ngày</span>
+                )
               }
             >
               <Checkbox />
@@ -1499,14 +1376,18 @@ const Task: React.FC = () => {
               name="isImportant"
               valuePropName="checked"
               label={
-                <span>
-                  Quan trọng{" "}
+                showTooltips ? (
                   <Tooltip title="Đánh dấu nhiệm vụ là quan trọng!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Quan trọng{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Quan trọng</span>
+                )
               }
             >
               <Checkbox />
@@ -1514,14 +1395,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="deadline"
               label={
-                <span>
-                  Hạn chót{" "}
+                showTooltips ? (
                   <Tooltip title="Chọn hạn chót hoàn thành nhiệm vụ!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Hạn chót{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Hạn chót</span>
+                )
               }
               rules={[{ required: true, message: "Vui lòng chọn thời hạn" }]}
             >
@@ -1534,14 +1419,18 @@ const Task: React.FC = () => {
             <Form.Item
               name="hours"
               label={
-                <span>
-                  Giờ hoàn thành{" "}
+                showTooltips ? (
                   <Tooltip title="Nhập thời gian dự kiến hoàn thành nhiệm vụ (tính bằng phút)!">
-                    <InfoCircleOutlined
-                      style={{ color: "#1890ff", marginLeft: 4 }}
-                    />
+                    <span>
+                      Giờ hoàn thành{" "}
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
                   </Tooltip>
-                </span>
+                ) : (
+                  <span>Giờ hoàn thành</span>
+                )
               }
               rules={[{ message: "Vui lòng nhập phút hoàn thành dự kiến" }]}
             >

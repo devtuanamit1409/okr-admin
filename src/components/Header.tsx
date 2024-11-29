@@ -1,7 +1,21 @@
-import React from "react";
-import { Layout, Dropdown, Menu, Typography, Avatar, Spin } from "antd";
-import { UserOutlined, LogoutOutlined } from "@ant-design/icons";
+import React, { useState, useEffect } from "react";
+import {
+  Layout,
+  Dropdown,
+  Menu,
+  Typography,
+  Avatar,
+  Spin,
+  Switch,
+  Tooltip,
+} from "antd";
+import {
+  UserOutlined,
+  LogoutOutlined,
+  QuestionCircleOutlined,
+} from "@ant-design/icons";
 import { useFetchUser } from "../hooks/useFetchUser";
+import api from "../services/api"; // Import hàm gọi API
 
 const { Header } = Layout;
 
@@ -12,10 +26,32 @@ interface HeaderProps {
 
 const HeaderBar: React.FC<HeaderProps> = ({ pageTitle }) => {
   const { user, loading } = useFetchUser(); // Gọi hook để lấy thông tin người dùng
+  const [isGuideEnabled, setIsGuideEnabled] = useState<boolean | null>(null); // Bắt đầu với null để phân biệt khi chưa có dữ liệu
+
+  useEffect(() => {
+    if (user) {
+      setIsGuideEnabled(user?.isInstruct ?? false); // Đồng bộ `isGuideEnabled` với giá trị từ `user`
+    }
+  }, [user]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     window.location.href = "/";
+  };
+
+  const handleGuideSwitchChange = async (checked: boolean) => {
+    setIsGuideEnabled(checked); // Cập nhật ngay trong giao diện
+
+    try {
+      await api.put(`/users/${user?.id}`, {
+        isInstruct: checked,
+      });
+      window.location.reload();
+    } catch (error) {
+      console.error("Không thể cập nhật trạng thái hướng dẫn:", error);
+      // Hoàn tác trạng thái nếu có lỗi
+      setIsGuideEnabled(!checked);
+    }
   };
 
   const menu = (
@@ -26,8 +62,8 @@ const HeaderBar: React.FC<HeaderProps> = ({ pageTitle }) => {
     </Menu>
   );
 
-  if (loading) {
-    // Hiển thị spinner nếu đang load dữ liệu
+  if (loading || isGuideEnabled === null) {
+    // Hiển thị spinner nếu đang load dữ liệu hoặc `isGuideEnabled` chưa được khởi tạo
     return (
       <Header
         style={{
@@ -71,19 +107,37 @@ const HeaderBar: React.FC<HeaderProps> = ({ pageTitle }) => {
         {pageTitle}
       </Typography.Title>
 
-      {/* Dropdown tài khoản */}
-      <Dropdown overlay={menu} placement="bottomRight" arrow>
-        <div
-          style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
-        >
-          <Avatar
-            size="large"
-            icon={<UserOutlined />}
-            style={{ marginRight: 8 }}
+      {/* Dropdown tài khoản và công tắc hướng dẫn */}
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        {/* Công tắc hướng dẫn */}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Tooltip title="Bật/Tắt chế độ hướng dẫn">
+            <QuestionCircleOutlined
+              style={{ color: "#1890ff", fontSize: "18px", cursor: "pointer" }}
+            />
+          </Tooltip>
+          <Switch
+            checked={isGuideEnabled ?? false} // Nếu chưa có giá trị, mặc định là false
+            onChange={handleGuideSwitchChange}
+            checkedChildren="Bật hướng dẫn"
+            unCheckedChildren="Tắt hướng dẫn"
           />
-          <Typography.Text strong>{user?.name || "N/A"}</Typography.Text>
         </div>
-      </Dropdown>
+
+        {/* Dropdown tài khoản */}
+        <Dropdown overlay={menu} placement="bottomRight" arrow>
+          <div
+            style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
+          >
+            <Avatar
+              size="large"
+              icon={<UserOutlined />}
+              style={{ marginRight: 8 }}
+            />
+            <Typography.Text strong>{user?.name || "N/A"}</Typography.Text>
+          </div>
+        </Dropdown>
+      </div>
     </Header>
   );
 };

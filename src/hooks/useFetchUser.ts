@@ -24,6 +24,7 @@ interface User {
   goalWeek?: any;
   goalMonth?: any;
   goalDaily?: any;
+  isInstruct?: boolean;
 }
 export const useFetchUser = () => {
   const [user, setUser] = useState<User | null>(null);

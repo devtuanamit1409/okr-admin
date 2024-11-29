@@ -26,3 +26,17 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 1000;
 }
+
+/* Xen kẽ màu cho các dòng */
+.custom-table tbody tr:nth-child(odd) {
+  background-color: #fafafa; /* Màu nền cho các hàng lẻ */
+}
+
+.custom-table tbody tr:nth-child(even) {
+  background-color: #ffffff; /* Màu nền cho các hàng chẵn */
+}
+
+.custom-table tbody tr:hover {
+  background-color: #e6f7ff; /* Màu khi hover */
+  transition: background-color 0.2s ease; /* Hiệu ứng mượt khi hover */
+}
