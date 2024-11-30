@@ -385,7 +385,7 @@ const Task: React.FC = () => {
     },
     {
       title: showTooltips ? (
-        <Tooltip title="Tổng số giờ hoàn thành nhiệm vụ dự kiến">
+        <Tooltip title="Tổng số Thời gian dự kiến nhiệm vụ dự kiến">
           <span>
             Giờ dự kiến{" "}
             <InfoCircleOutlined
@@ -1546,14 +1546,14 @@ const Task: React.FC = () => {
                 showTooltips ? (
                   <Tooltip title="Nhập thời gian dự kiến hoàn thành nhiệm vụ (tính bằng phút)!">
                     <span>
-                      Giờ hoàn thành{" "}
+                      Thời gian dự kiến{" "}
                       <InfoCircleOutlined
                         style={{ color: "#1890ff", marginLeft: 4 }}
                       />
                     </span>
                   </Tooltip>
                 ) : (
-                  <span>Giờ hoàn thành</span>
+                  <span>Thời gian dự kiến</span>
                 )
               }
             >
@@ -1839,14 +1839,14 @@ const Task: React.FC = () => {
                 showTooltips ? (
                   <Tooltip title="Nhập thời gian dự kiến hoàn thành nhiệm vụ (tính bằng phút)!">
                     <span>
-                      Giờ hoàn thành{" "}
+                      Thời gian dự kiến{" "}
                       <InfoCircleOutlined
                         style={{ color: "#1890ff", marginLeft: 4 }}
                       />
                     </span>
                   </Tooltip>
                 ) : (
-                  <span>Giờ hoàn thành</span>
+                  <span>Thời gian dự kiến</span>
                 )
               }
             >
