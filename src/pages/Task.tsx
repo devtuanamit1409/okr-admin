@@ -12,6 +12,7 @@ import {
   Checkbox,
   Space,
   Select,
+  Dropdown,
 } from "antd";
 import utc from "dayjs/plugin/utc"; // Import plugin utc
 
@@ -33,6 +34,8 @@ import {
 } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
+import { SettingOutlined } from "@ant-design/icons";
+
 import "../styles/TaskTable.css";
 
 import {
@@ -49,6 +52,9 @@ interface Task {
   priorityLevel: string;
   deadline: string;
   description: string; // Thuộc tính cần thiết
+  goal: string;
+  result: string;
+  prove: string;
   [key: string]: any; // Các thuộc tính bổ sung
 }
 
@@ -87,6 +93,8 @@ const Task: React.FC = () => {
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
   const [showTooltips, setShowTooltips] = useState<boolean>(false);
   const [columns, setColumns] = useState<Column[]>([]);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>([]); // Trạng thái cột hiển thị
+
   useEffect(() => {
     setShowTooltips(user?.isInstruct ?? false); // Kiểm tra giá trị `isInstruct`
   }, [user?.isInstruct]);
@@ -287,6 +295,57 @@ const Task: React.FC = () => {
       key: "completion_time",
       render: (text: string) =>
         text ? dayjs(text).format("YYYY-MM-DD HH:mm") : "Chưa xác định",
+    },
+    {
+      title: showTooltips ? (
+        <Tooltip title="Mục tiêu của nhiệm vụ">
+          <span>
+            Mục tiêu của nhiệm vụ
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ) : (
+        <span>Mục tiêu của nhiệm vụ</span>
+      ),
+      dataIndex: "goal",
+      key: "goal",
+      render: (text: string) => text || "Chưa xác định",
+    },
+    {
+      title: showTooltips ? (
+        <Tooltip title="Kết quả thực tế">
+          <span>
+            Kết quả thực tế
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ) : (
+        <span>Kết quả thực tế</span>
+      ),
+      dataIndex: "result",
+      key: "result",
+      render: (text: string) => text || "Chưa xác định",
+    },
+    {
+      title: showTooltips ? (
+        <Tooltip title="Bằng chứng">
+          <span>
+            Bằng chứng
+            <InfoCircleOutlined
+              style={{ color: "#1890ff", marginLeft: 4, cursor: "pointer" }}
+            />
+          </span>
+        </Tooltip>
+      ) : (
+        <span>Bằng chứng</span>
+      ),
+      dataIndex: "prove",
+      key: "prove",
+      render: (text: string) => text || "Chưa xác định",
     },
     {
       title: showTooltips ? (
@@ -536,8 +595,36 @@ const Task: React.FC = () => {
   ];
 
   useEffect(() => {
+    const generatedColumns = generateColumns(showTooltips);
     setColumns(generateColumns(showTooltips));
+    setVisibleColumns(generatedColumns.map((col) => col.key));
   }, [showTooltips]);
+  const handleColumnVisibilityChange = (checked: boolean, key: string) => {
+    setVisibleColumns((prev) =>
+      checked ? [...prev, key] : prev.filter((colKey) => colKey !== key)
+    );
+  };
+
+  // Lọc cột hiển thị dựa trên visibleColumns
+  const filteredColumns = columns.filter((col) =>
+    visibleColumns.includes(col.key)
+  );
+  const columnSettingsMenu = (
+    <div style={{ padding: "8px", background: "#fff", zIndex: 100 }}>
+      {columns.map((col) => (
+        <div key={col.key} style={{ marginBottom: 8 }}>
+          <Checkbox
+            checked={visibleColumns.includes(col.key)}
+            onChange={(e) =>
+              handleColumnVisibilityChange(e.target.checked, col.key)
+            }
+          >
+            {col.title}
+          </Checkbox>
+        </div>
+      ))}
+    </div>
+  );
 
   const handleDragEnd = (result: DropResult): void => {
     const { source, destination } = result;
@@ -1050,13 +1137,37 @@ const Task: React.FC = () => {
         style={{ marginBottom: 16 }}
         onClick={() => setIsModalVisible(true)}
       >
-        Thêm Task
+        Thêm công việc
       </Button>
       <div style={{ marginBottom: 16 }}>
         <strong>Tổng thời gian làm việc: {hoursWork} giờ</strong>
       </div>
 
       <div>
+        <h3
+          style={{
+            marginBottom: 16,
+            fontSize: "20px",
+            fontWeight: "bold",
+            color: "#1890ff",
+            textAlign: "center",
+          }}
+        >
+          🌟 To Do List
+        </h3>{" "}
+        <div
+          style={{
+            marginBottom: 16,
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
+          <Dropdown overlay={columnSettingsMenu} trigger={["click"]}>
+            <Button icon={<SettingOutlined />} type="default">
+              Cài đặt cột
+            </Button>
+          </Dropdown>
+        </div>
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="columns" direction="horizontal" type="COLUMN">
             {(provided) => (
@@ -1067,7 +1178,7 @@ const Task: React.FC = () => {
               >
                 <thead>
                   <tr>
-                    {columns.map((col, index) => (
+                    {filteredColumns.map((col, index) => (
                       <Draggable
                         key={col.key}
                         draggableId={col.key}
@@ -1105,7 +1216,7 @@ const Task: React.FC = () => {
                   {tasks.map((task, rowIndex) => (
                     <>
                       <tr key={rowIndex}>
-                        {columns.map((col, colIndex) => (
+                        {filteredColumns.map((col, colIndex) => (
                           <td key={`${rowIndex}-${colIndex}`}>
                             {col.dataIndex === "title" ? (
                               <div className="flex justify-start items-center">
@@ -1169,7 +1280,6 @@ const Task: React.FC = () => {
             )}
           </Droppable>
         </DragDropContext>
-
         {/* Modal chỉnh sửa */}
         <Modal
           title="Chỉnh sửa Task"
@@ -1214,6 +1324,66 @@ const Task: React.FC = () => {
                   </Tooltip>
                 ) : (
                   <span>Mô tả</span>
+                )
+              }
+              rules={[{ required: true, message: "Vui lòng nhập mô tả task" }]}
+            >
+              <Input.TextArea />
+            </Form.Item>
+            <Form.Item
+              name="goal"
+              label={
+                showTooltips ? (
+                  <Tooltip title="Nhập mục tiêu của nhiệm vụ!">
+                    <span>
+                      Mục tiêu
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
+                  </Tooltip>
+                ) : (
+                  <span> Mục tiêu</span>
+                )
+              }
+              rules={[{ required: true, message: "Vui lòng nhập mô tả task" }]}
+            >
+              <Input.TextArea />
+            </Form.Item>
+            <Form.Item
+              name="result"
+              label={
+                showTooltips ? (
+                  <Tooltip title="Nhập kết quả thực tế của nhiệm vụ!">
+                    <span>
+                      Kết quả thực tế
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
+                  </Tooltip>
+                ) : (
+                  <span> Kết quả thực tế</span>
+                )
+              }
+              rules={[{ required: true, message: "Vui lòng nhập mô tả task" }]}
+            >
+              <Input.TextArea />
+            </Form.Item>
+            <Form.Item
+              name="prove"
+              label={
+                showTooltips ? (
+                  <Tooltip title="Nhập bằng chứng của nhiệm vụ!">
+                    <span>
+                      Bằng chứng
+                      <InfoCircleOutlined
+                        style={{ color: "#1890ff", marginLeft: 4 }}
+                      />
+                    </span>
+                  </Tooltip>
+                ) : (
+                  <span> Bằng chứng</span>
                 )
               }
               rules={[{ required: true, message: "Vui lòng nhập mô tả task" }]}
@@ -1422,7 +1592,6 @@ const Task: React.FC = () => {
             </Form.Item>
           </Form>
         </Modal>
-
         {/* Modal cập nhật tiến độ */}
         <Modal
           title="Cập nhật tiến độ"
@@ -1462,7 +1631,6 @@ const Task: React.FC = () => {
             </Form.Item>
           </Form>
         </Modal>
-
         <Modal
           title="Thêm Task"
           visible={isModalVisible}
